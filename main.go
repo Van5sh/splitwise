@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Van5sh/new-splitwise/database"
+	"github.com/Van5sh/new-splitwise/internal/db"
 	"github.com/gofiber/fiber/v2"
 )
 
