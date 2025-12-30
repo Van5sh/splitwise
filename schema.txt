@@ -1,0 +1,79 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    firebase_uid TEXT NOT NULL UNIQUE,
+    user_name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL DEFAULT 'user'
+        CHECK (role IN ('user', 'admin')),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    group_name TEXT NOT NULL,
+    description TEXT,
+    total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+
+CREATE TABLE user_groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    role TEXT NOT NULL DEFAULT 'member'
+        CHECK (role IN ('member', 'admin')),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    UNIQUE (user_id, group_id)
+);
+
+CREATE UNIQUE INDEX one_admin_per_group
+ON user_groups (group_id)
+WHERE role = 'admin';
+
+CREATE INDEX idx_user_groups_user
+ON user_groups (user_id);
+
+CREATE INDEX idx_user_groups_group
+ON user_groups (group_id);
+
+
+CREATE TABLE expense_splits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    expense_id UUID NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id),
+    amount NUMERIC(12,2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    UNIQUE (expense_id, user_id)
+);
+
+CREATE INDEX idx_expense_splits_user
+ON expense_splits (user_id);
+
+CREATE INDEX idx_expense_splits_expense
+ON expense_splits (expense_id);
+
+CREATE TABLE settlements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    from_user_id UUID NOT NULL REFERENCES users(id),
+    to_user_id   UUID NOT NULL REFERENCES users(id),
+    amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CHECK (from_user_id <> to_user_id)
+);
+
+CREATE INDEX idx_settlements_group
+ON settlements (group_id);
+
+CREATE INDEX idx_settlements_from_user
+ON settlements (from_user_id);
+
+CREATE INDEX idx_settlements_to_user
+ON settlements (to_user_id);
