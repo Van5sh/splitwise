@@ -11,11 +11,12 @@ type UserGroupRepository struct {
 	q *sqlc.Queries
 }
 
+// new
 func NewUserGroupRepository(q *sqlc.Queries) *UserGroupRepository {
 	return &UserGroupRepository{q: q}
 }
 
-func (r *UserGroupRepository) AddUserToGroup(ctx context.Context, userId, groupId string) error  {
+func (r *UserGroupRepository) AddUserToGroup(ctx context.Context, userId, groupId string) error {
 	userIdUUID, _ := uuid.Parse(userId)
 	groupIdUUID, _ := uuid.Parse(groupId)
 	return r.q.AddUserToGroup(ctx, sqlc.AddUserToGroupParams{

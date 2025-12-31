@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// new
 type UserDetailsRepository struct {
 	q *sqlc.Queries
 }

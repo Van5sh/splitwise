@@ -11,6 +11,8 @@ type BalanceRepository struct {
 	q *sqlc.Queries
 }
 
+//new
+
 func NewBalanceRepository(q *sqlc.Queries) *BalanceRepository {
 	return &BalanceRepository{q: q}
 }

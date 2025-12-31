@@ -26,6 +26,7 @@ func (r *GroupsRepository) GetGroupById(ctx context.Context, id string) (sqlc.Gr
 	if err != nil {
 		return sqlc.Group{}, err
 	}
+	//new
 	return r.q.GetGroupById(ctx, groupID)
 }
 

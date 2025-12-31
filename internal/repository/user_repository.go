@@ -30,7 +30,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id string) (sqlc.User,
 func (r *UserRepository) CreateUser(ctx context.Context, firebaseId string, role string) (sqlc.User, error) {
 	return r.q.CreateUser(ctx, sqlc.CreateUserParams{
 		FirebaseUid: firebaseId,
-		Role:        role,
+		Role:        role, //new
 	})
 }
 
