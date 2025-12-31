@@ -60,3 +60,4 @@ SELECT u.*, ud.user_name, ud.email
 FROM users u
 JOIN user_details ud ON ud.user_id = u.id
 WHERE u.id = $1;
+
