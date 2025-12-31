@@ -61,3 +61,11 @@ FROM users u
 JOIN user_details ud ON ud.user_id = u.id
 WHERE u.id = $1;
 
+-- name: AddUserToGroup :exec
+INSERT INTO user_groups (user_id, group_id) VALUES ($1, $2);
+
+-- name: RemoveUserFromGroup :exec
+DELETE FROM user_groups WHERE user_id = $1 AND group_id = $2;
+
+-- name: GetUsersByRole :many
+SELECT * FROM users WHERE role = $1;
