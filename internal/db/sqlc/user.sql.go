@@ -13,6 +13,20 @@ import (
 	"github.com/google/uuid"
 )
 
+const addUserToGroup = `-- name: AddUserToGroup :exec
+INSERT INTO user_groups (user_id, group_id) VALUES ($1, $2)
+`
+
+type AddUserToGroupParams struct {
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) AddUserToGroup(ctx context.Context, arg AddUserToGroupParams) error {
+	_, err := q.db.ExecContext(ctx, addUserToGroup, arg.UserID, arg.GroupID)
+	return err
+}
+
 const checkUserExistsByEmail = `-- name: CheckUserExistsByEmail :one
 SELECT 1 FROM user_details WHERE email = $1 LIMIT 1
 `
@@ -314,6 +328,53 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUsersByRole = `-- name: GetUsersByRole :many
+SELECT id, firebase_uid, role, created_at, updated_at FROM users WHERE role = $1
+`
+
+func (q *Queries) GetUsersByRole(ctx context.Context, role string) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getUsersByRole, role)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirebaseUid,
+			&i.Role,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const removeUserFromGroup = `-- name: RemoveUserFromGroup :exec
+DELETE FROM user_groups WHERE user_id = $1 AND group_id = $2
+`
+
+type RemoveUserFromGroupParams struct {
+	UserID  uuid.UUID
+	GroupID uuid.UUID
+}
+
+func (q *Queries) RemoveUserFromGroup(ctx context.Context, arg RemoveUserFromGroupParams) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromGroup, arg.UserID, arg.GroupID)
+	return err
 }
 
 const updateUser = `-- name: UpdateUser :one
