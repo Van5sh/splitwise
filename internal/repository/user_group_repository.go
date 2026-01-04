@@ -26,5 +26,10 @@ func (r *UserGroupRepository) AddUserToGroup(ctx context.Context, userId, groupI
 }
 
 func (r *UserGroupRepository) RemoveUserFromGroup(ctx context.Context, userId, groupId string) error {
-	return r.q.RemoveUserFromGroup(ctx, sqlc.RemoveUserFromGroupParams{})
+	userIdUUID, _ := uuid.Parse(userId)
+	groupIdUUID, _ := uuid.Parse(groupId)
+	return r.q.RemoveUserFromGroup(ctx, sqlc.RemoveUserFromGroupParams{
+		UserID:  userIdUUID,
+		GroupID: groupIdUUID,
+	})
 }
