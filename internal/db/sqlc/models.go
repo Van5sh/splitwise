@@ -30,6 +30,14 @@ type ExpenseSplit struct {
 	UpdatedAt time.Time
 }
 
+type Friend struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	FriendID  uuid.UUID
+	Status    string
+	CreatedAt time.Time
+}
+
 type Group struct {
 	ID          uuid.UUID
 	GroupName   string

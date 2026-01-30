@@ -19,6 +19,18 @@ func (r *UserRepository) GetUsers(ctx context.Context) ([]sqlc.User, error) {
 	return r.q.GetUsers(ctx)
 }
 
+func (r *UserRepository) GetUserByName(ctx context.Context, name string) (sqlc.User, error) {
+	row, err := r.q.GetUserByName(ctx, name)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	return sqlc.User{
+		ID:          row.ID,
+		FirebaseUid: row.FirebaseUid,
+		Role:        row.Role,
+	}, nil
+}
+
 func (r *UserRepository) GetUserByID(ctx context.Context, id string) (sqlc.User, error) {
 	userId, err := uuid.Parse(id)
 	if err != nil {
@@ -30,7 +42,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id string) (sqlc.User,
 func (r *UserRepository) CreateUser(ctx context.Context, firebaseId string, role string) (sqlc.User, error) {
 	return r.q.CreateUser(ctx, sqlc.CreateUserParams{
 		FirebaseUid: firebaseId,
-		Role:        role, //new
+		Role:        role,
 	})
 }
 
@@ -46,6 +58,18 @@ func (r *UserRepository) UpdateUserRole(ctx context.Context, id string, role str
 	return r.q.UpdateUser(ctx, sqlc.UpdateUserParams{
 		ID:   userId,
 		Role: role,
+	})
+}
+
+func (r *UserRepository) CreateUserDetails(ctx context.Context, userID string, name string, email string) (sqlc.UserDetail, error) {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return sqlc.UserDetail{}, err
+	}
+	return r.q.CreateUserDetails(ctx, sqlc.CreateUserDetailsParams{
+		UserID:   uid,
+		UserName: name,
+		Email:    email,
 	})
 }
 

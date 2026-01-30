@@ -39,7 +39,7 @@ func (s *UserServices) GetUserByID(ctx context.Context, id string) (models.User,
 		return models.User{}, err
 	}
 	return models.User{
-		ID:         user.ID.String(),
+		ID:         user.ID,
 		Role:       user.Role,
 		FirebaseID: user.FirebaseUid,
 		CreatedAt:  user.CreatedAt,
@@ -47,6 +47,16 @@ func (s *UserServices) GetUserByID(ctx context.Context, id string) (models.User,
 	}, nil
 }
 
-func (s *UserServices) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	return s.repo.CreateUser(ctx, user)
+func (s *UserServices) CreateUser(ctx context.Context, user models.User, userDetails models.UserDetails) (models.User, error) {
+	dbUser, err := s.repo.GetUserByName(ctx, userDetails.User_Name)
+	if err != nil {
+		return models.User{}, err
+	}
+	return models.User{
+		ID:         dbUser.ID,
+		Role:       dbUser.FirebaseUid,
+		FirebaseID: dbUser.FirebaseUid,
+		CreatedAt:  dbUser.CreatedAt,
+		UpdatedAt:  dbUser.UpdatedAt,
+	}, nil
 }

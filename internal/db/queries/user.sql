@@ -26,6 +26,12 @@ INSERT INTO users (
 )
 RETURNING *;
 
+-- name: GetUserByName :one
+SELECT u.*, ud.user_name, ud.email
+FROM users u
+JOIN user_details ud ON u.id = ud.user_id
+WHERE ud.user_name = $1;
+
 -- name: UpdateUser :one
 UPDATE users SET
     role = COALESCE($2, role),

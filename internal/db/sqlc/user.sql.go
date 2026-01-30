@@ -142,6 +142,38 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 	return i, err
 }
 
+const getUserByName = `-- name: GetUserByName :one
+SELECT u.id, u.firebase_uid, u.role, u.created_at, u.updated_at, ud.user_name, ud.email
+FROM users u
+JOIN user_details ud ON u.id = ud.user_id
+WHERE ud.user_name = $1
+`
+
+type GetUserByNameRow struct {
+	ID          uuid.UUID
+	FirebaseUid string
+	Role        string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	UserName    string
+	Email       string
+}
+
+func (q *Queries) GetUserByName(ctx context.Context, userName string) (GetUserByNameRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByName, userName)
+	var i GetUserByNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.FirebaseUid,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserName,
+		&i.Email,
+	)
+	return i, err
+}
+
 const getUserExpensesByUserId = `-- name: GetUserExpensesByUserId :many
 SELECT e.id, e.group_id, e.paid_by, e.description, e.amount, e.created_at, e.updated_at
 FROM expenses e
