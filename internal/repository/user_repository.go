@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
 	"github.com/google/uuid"
@@ -13,6 +14,12 @@ type UserRepository struct {
 
 func NewUserRepository(q *sqlc.Queries) *UserRepository {
 	return &UserRepository{q: q}
+}
+
+func (r *UserRepository) WithTx(tx *sql.Tx) *UserRepository {
+	return &UserRepository{
+		q: r.q.WithTx(tx),
+	}
 }
 
 func (r *UserRepository) GetUsers(ctx context.Context) ([]sqlc.User, error) {
