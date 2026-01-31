@@ -79,3 +79,47 @@ func (s *UserServices) CreateUser(ctx context.Context, userName string, Firebase
 		UpdatedAt:  newUser.UpdatedAt,
 	}, nil
 }
+
+func (s *UserServices) GetUserByFirebaseID(ctx context.Context, firebaseID string) (models.User, error) {
+	user, err := s.repo.GetUserByFirebaseID(ctx, firebaseID)
+	if err != nil {
+		return models.User{}, err
+	}
+	return models.User{
+		ID:         user.ID,
+		Role:       user.Role,
+		FirebaseID: user.FirebaseUid,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}, nil
+}
+
+func (r *UserServices) UpdateUserRole(ctx context.Context, id string, role string) (models.User, error) {
+	_, err := r.repo.ValidateUserExists(ctx, id)
+	if err != nil {
+		return models.User{}, err
+	}
+	res, err := r.repo.UpdateUserRole(ctx, id, role)
+	if err != nil {
+		return models.User{}, err
+	}
+	return models.User{
+		ID:         res.ID,
+		Role:       res.Role,
+		FirebaseID: res.FirebaseUid,
+		CreatedAt:  res.CreatedAt,
+		UpdatedAt:  res.UpdatedAt,
+	}, nil
+}
+
+func (r *UserServices) DeleteUser(ctx context.Context, id string) error {
+	_, err := r.repo.ValidateUserExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = r.repo.DeleteUser(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
