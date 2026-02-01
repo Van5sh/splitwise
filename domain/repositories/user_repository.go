@@ -18,5 +18,6 @@ type UserRepository interface {
 	GetUserByFirebaseID(ctx context.Context, firebaseId string) (sqlc.User, error)
 	UpdateUserRole(ctx context.Context, id string, role string) (sqlc.User, error)
 	DeleteUser(ctx context.Context, id string) (sqlc.User, error)
+	CreateUserDetasils(ctx context.Context, userID string, name string, email string) (sqlc.UserDetail, error)
 	ValidateUserExists(ctx context.Context, id string) (bool, error)
 }
