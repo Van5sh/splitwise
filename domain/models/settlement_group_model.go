@@ -11,7 +11,7 @@ type Settlement struct {
 	GroupID    uuid.UUID `json:"group_id"`
 	FromUserID uuid.UUID `json:"from_user_id"`
 	ToUserID   uuid.UUID `json:"to_user_id"`
-	Amount     float64   `json:"amount"`
+	Amount     string    `json:"amount"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
