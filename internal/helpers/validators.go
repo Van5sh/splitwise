@@ -1,6 +1,10 @@
 package helpers
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type CreateExpenseRequest struct {
 	GroupID string
@@ -22,4 +26,12 @@ func ValidateCreateExpense(req CreateExpenseRequest) error {
 	}
 
 	return nil
+}
+
+func ValidateId(id string) (uuid.UUID, error) {
+	fid, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.UUID{}, errors.New("invalid id")
+	}
+	return fid, nil
 }
