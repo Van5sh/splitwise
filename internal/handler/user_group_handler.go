@@ -7,48 +7,82 @@ import (
 )
 
 type UserGroupHandler struct {
-	services *services.UserGroupService
+	service *services.UserGroupService
 }
 
-func NewUserGroupHandler(services *services.UserGroupService) *UserGroupHandler {
-	return &UserGroupHandler{
-		services: services,
-	}
+func NewUserGroupHandler(service *services.UserGroupService) *UserGroupHandler {
+	return &UserGroupHandler{service: service}
 }
 
 func (h *UserGroupHandler) RemoveUserFromGroup(c *fiber.Ctx) error {
-	userId := c.Params("id")
-	groupId := c.Params("groupId")
+	userID := c.Params("id")
+	groupID := c.Params("groupId")
 
-	uid, err := helpers.ValidateId(userId)
+	uid, err := helpers.ValidateId(userID)
 	if err != nil {
-		return err
+		appErr := helpers.ValidationError("invalid user id", nil, err)
+		return c.Status(appErr.Status).JSON(appErr)
 	}
-	gid, err := helpers.ValidateId(groupId)
+	gid, err := helpers.ValidateId(groupID)
 	if err != nil {
-		return err
+		appErr := helpers.ValidationError("invalid group id", nil, err)
+		return c.Status(appErr.Status).JSON(appErr)
 	}
-	err = h.services.RemoveUserFromGroup(uid, gid)
-	if err != nil {
-		return err
+
+	if err := h.service.RemoveUserFromGroup(
+		c.Context(),
+		uid.String(),
+		gid.String(),
+	); err != nil {
+		appErr := helpers.InternalServerError(
+			"failed to remove user from group",
+			nil,
+			err,
+		)
+		return c.Status(appErr.Status).JSON(appErr)
 	}
-	return c.SendStatus(fiber.StatusNoContent)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "user removed from group successfully",
+		"userId":  userID,
+		"groupId": groupID,
+	})
 }
 
 func (h *UserGroupHandler) AddUserToGroup(c *fiber.Ctx) error {
-	userId := c.Params("id")
-	groupId := c.Params("groupId")
-	uid, err := helpers.ValidateId(userId)
+	userID := c.Params("id")
+	groupID := c.Params("groupId")
+
+	uid, err := helpers.ValidateId(userID)
 	if err != nil {
-		return err
+		appErr := helpers.ValidationError("invalid user id", nil, err)
+		return c.Status(appErr.Status).JSON(appErr)
 	}
-	gid, err := helpers.ValidateId(groupId)
+
+	gid, err := helpers.ValidateId(groupID)
 	if err != nil {
-		return err
+		appErr := helpers.ValidationError("invalid group id", nil, err)
+		return c.Status(appErr.Status).JSON(appErr)
 	}
-	err = h.services.AddUserToGroup(uid, gid)
-	if err != nil {
-		return err
+
+	if err := h.service.AddUserToGroup(
+		c.Context(),
+		uid.String(),
+		gid.String(),
+	); err != nil {
+		appErr := helpers.InternalServerError(
+			"failed to add user to group",
+			nil,
+			err,
+		)
+		return c.Status(appErr.Status).JSON(appErr)
 	}
-	return c.SendStatus(fiber.StatusNoContent)
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  "success",
+		"message": "user added to group successfully",
+		"userId":  userID,
+		"groupId": groupID,
+	})
 }

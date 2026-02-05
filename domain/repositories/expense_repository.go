@@ -14,4 +14,5 @@ type ExpenseRepository interface {
 	CreateExpense(ctx context.Context, groupId, userId, description string, amount int) (sqlc.Expense, error)
 	DeleteExpense(ctx context.Context, id string) error
 	ValidateExpenseExists(ctx context.Context, id string) (bool, error)
+	UpdateExpense(ctx context.Context, id, description string, amount int) (sqlc.Expense, error)
 }
