@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"mime/multipart"
+	"strconv"
+	"strings"
 
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
 	"github.com/google/uuid"
@@ -16,6 +19,7 @@ type CreateExpenseRequest struct {
 	Amount  float64
 	Note    string
 }
+
 
 func ValidateCreateExpense(req CreateExpenseRequest) error {
 	if req.GroupID == "" {
@@ -240,3 +244,82 @@ func ValidateSplitTotalEqualsExpenseAmount(
 
 	return nil
 }
+
+
+
+func ValidateFormRequiredString(value, fieldName string) error {
+	if strings.TrimSpace(value) == "" {
+		return errors.New(fieldName + " is required")
+	}
+	return nil
+}
+
+func ValidateFormRequiredUUID(value, fieldName string) (uuid.UUID, error) {
+	if strings.TrimSpace(value) == "" {
+		return uuid.UUID{}, errors.New(fieldName + " is required")
+	}
+
+	id, err := uuid.Parse(value)
+	if err != nil {
+		return uuid.UUID{}, errors.New("invalid " + fieldName)
+	}
+
+	return id, nil
+}
+
+func ValidateFormRequiredFloat(value, fieldName string) (float64, error) {
+	if strings.TrimSpace(value) == "" {
+		return 0, errors.New(fieldName + " is required")
+	}
+
+	f, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0, errors.New(fieldName + " must be a number")
+	}
+
+	if f <= 0 {
+		return 0, errors.New(fieldName + " must be greater than 0")
+	}
+
+	return f, nil
+}
+
+func ValidateFormRequiredFile(
+	file *multipart.FileHeader,
+	fieldName string,
+) error {
+
+	if file == nil {
+		return errors.New(fieldName + " file is required")
+	}
+
+	if file.Size == 0 {
+		return errors.New(fieldName + " file is empty")
+	}
+
+	return nil
+}
+
+func ValidateFormMimeType(
+	file *multipart.FileHeader,
+	allowed []string,
+	fieldName string,
+) error {
+
+	contentType := file.Header.Get("Content-Type")
+	if contentType == "" {
+		return errors.New(fieldName + " has unknown file type")
+	}
+
+	for _, t := range allowed {
+		if contentType == t {
+			return nil
+		}
+	}
+
+	return errors.New(fieldName + " has invalid file type")
+}
+
+
+
+
