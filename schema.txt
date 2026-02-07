@@ -77,3 +77,10 @@ ON settlements (from_user_id);
 
 CREATE INDEX idx_settlements_to_user
 ON settlements (to_user_id);
+
+ValidateExpenseExists(ctx context.Context, id string) (bool, error)
+ValidateUserExists(ctx context.Context, id string) (bool, error)
+ValidateExpenseExists(ctx context.Context, id string) (bool, error)
+ValidateGroupExists(ctx context.Context, id string) (bool, error)
+ValidateUsersInSameGroup(ctx context.Context, fromUserId, toUserId, groupId string) (int32, error)
+ValidateUserExists(ctx context.Context, id string) (bool, error)

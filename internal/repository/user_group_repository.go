@@ -11,7 +11,6 @@ type UserGroupRepository struct {
 	q *sqlc.Queries
 }
 
-// new
 func NewUserGroupRepository(q *sqlc.Queries) *UserGroupRepository {
 	return &UserGroupRepository{q: q}
 }
