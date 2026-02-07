@@ -92,14 +92,4 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id string) (sqlc.User, 
 	return sqlc.User{}, nil
 }
 
-func (r *UserRepository) ValidateUserExists(ctx context.Context, id string) (bool, error) {
-	userId, err := uuid.Parse(id)
-	if err != nil {
-		return false, nil
-	}
-	_, err = r.q.GetUserById(ctx, userId)
-	if err != nil {
-		return false, nil
-	}
-	return true, nil
-}
+

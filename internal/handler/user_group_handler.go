@@ -18,12 +18,12 @@ func (h *UserGroupHandler) RemoveUserFromGroup(c *fiber.Ctx) error {
 	userID := c.Params("id")
 	groupID := c.Params("groupId")
 
-	uid, err := helpers.ValidateId(userID)
+	uid, err := helpers.ValidateID(userID)
 	if err != nil {
 		appErr := helpers.ValidationError("invalid user id", nil, err)
 		return c.Status(appErr.Status).JSON(appErr)
 	}
-	gid, err := helpers.ValidateId(groupID)
+	gid, err := helpers.ValidateID(groupID)
 	if err != nil {
 		appErr := helpers.ValidationError("invalid group id", nil, err)
 		return c.Status(appErr.Status).JSON(appErr)
@@ -54,13 +54,13 @@ func (h *UserGroupHandler) AddUserToGroup(c *fiber.Ctx) error {
 	userID := c.Params("id")
 	groupID := c.Params("groupId")
 
-	uid, err := helpers.ValidateId(userID)
+	uid, err := helpers.ValidateID(userID)
 	if err != nil {
 		appErr := helpers.ValidationError("invalid user id", nil, err)
 		return c.Status(appErr.Status).JSON(appErr)
 	}
 
-	gid, err := helpers.ValidateId(groupID)
+	gid, err := helpers.ValidateID(groupID)
 	if err != nil {
 		appErr := helpers.ValidationError("invalid group id", nil, err)
 		return c.Status(appErr.Status).JSON(appErr)

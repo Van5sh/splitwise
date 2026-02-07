@@ -20,7 +20,7 @@ func NewUserDetailsHandler(services *services.UserDetailsService) *UserDetailsHa
 
 func (h *UserDetailsHandler) GetUserDetails(c *fiber.Ctx) error {
 	userId := c.Params("id")
-	uid, err := helpers.ValidateId(userId)
+	uid, err := helpers.ValidateID(userId)
 	if err != nil {
 		c.Status(fiber.StatusBadRequest).JSON(
 			"Invalid user id",
@@ -63,7 +63,7 @@ func (h *UserDetailsHandler) UpdateUserDetails(c *fiber.Ctx) error {
 	userId := c.FormValue("id")
 	name := c.FormValue("name")
 	email := c.FormValue("email")
-	uid, err := helpers.ValidateId(userId)
+	uid, err := helpers.ValidateID(userId)
 	if err != nil {
 		return helpers.ValidationError("Wrong Input", nil, &fiber.Error{})
 	}
@@ -82,11 +82,11 @@ func (h *UserDetailsHandler) UpdateUserDetails(c *fiber.Ctx) error {
 func (h *UserDetailsHandler) CheckUserInGroup(c *fiber.Ctx) error {
 	userId := c.Params("user_id")
 	groupId := c.Params("group_id")
-	uid, err := helpers.ValidateId(userId)
+	uid, err := helpers.ValidateID(userId)
 	if err != nil {
 		return helpers.ValidationError("Wrong Input", nil, &fiber.Error{})
 	}
-	gid, err := helpers.ValidateId(groupId)
+	gid, err := helpers.ValidateID(groupId)
 	if err != nil {
 		return helpers.ValidationError("Wrong Input", nil, &fiber.Error{})
 	}

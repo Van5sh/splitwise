@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
+
 
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
 	"github.com/google/uuid"
@@ -107,19 +107,4 @@ func (r *GroupsRepository) GetGroupAdmins(ctx context.Context, id string) ([]sql
 	return r.q.GetGroupAdmins(ctx, groupID)
 }
 
-func (r *GroupsRepository) ValidateGroupExists(ctx context.Context, id string) (bool, error) {
-	groupID, err := uuid.Parse(id)
-	if err != nil {
-		return false, err
-	}
 
-	_, err = r.q.ValidateGroupExists(ctx, groupID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return true, nil
-}

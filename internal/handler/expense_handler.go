@@ -66,7 +66,7 @@ func (h *ExpenseHandler) CreateExpense(c *fiber.Ctx) error {
 
 func (h *ExpenseHandler) DeleteExpenseByID(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uid, err := helpers.ValidateId(id)
+	uid, err := helpers.ValidateID(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid expense id"})
 	}
@@ -87,7 +87,7 @@ func (h *ExpenseHandler) UpdateExpense(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 	id := c.Params("id")
-	uid, err := helpers.ValidateId(id)
+	uid, err := helpers.ValidateID(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid expense id"})
 	}
@@ -104,7 +104,7 @@ func (h *ExpenseHandler) UpdateExpense(c *fiber.Ctx) error {
 
 func (h *ExpenseHandler) ValidateExpenseExists(c *fiber.Ctx) error {
 	id := c.Params("id")
-	uid, err := helpers.ValidateId(id)
+	uid, err := helpers.ValidateID(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid expense id"})
 	}

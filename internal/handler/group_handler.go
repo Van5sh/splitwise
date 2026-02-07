@@ -32,7 +32,7 @@ func (h *GroupHandler) GetGroups(c *fiber.Ctx) error {
 
 func (h *GroupHandler) GetGroupById(c *fiber.Ctx) error {
 	id := c.Params("id")
-	valid_id, err := helpers.ValidateId(id)
+	valid_id, err := helpers.ValidateID(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid group id",

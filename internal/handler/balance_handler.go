@@ -17,7 +17,7 @@ func NewBalanceHandler(services *services.BalanceService) *BalanceHandler {
 func (h *BalanceHandler) GetUserBalanceInGroup(c *fiber.Ctx) error {
 	userID := c.Params("user_id")
 	groupID := c.Params("group_id")
-	uid, err := helpers.ValidateId(userID)
+	uid, err := helpers.ValidateID(userID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}

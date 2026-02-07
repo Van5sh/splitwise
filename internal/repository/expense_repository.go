@@ -69,17 +69,7 @@ func (r *ExpenseRepository) DeleteExpense(ctx context.Context, id string) (sqlc.
 	return r.q.DeleteExpense(ctx, expenseId)
 }
 
-func (r *ExpenseRepository) ValidateExpenseExists(ctx context.Context, id string) (bool, error) {
-	expenseId, err := uuid.Parse(id)
-	if err != nil {
-		return false, nil
-	}
-	_, err = r.q.GetExpenseById(ctx, expenseId)
-	if err != nil {
-		return false, nil
-	}
-	return true, nil
-}
+
 
 func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description string, amount int) (sqlc.Expense, error) {
 	expenseId, err := uuid.Parse(id)
@@ -93,49 +83,9 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 	})
 }
 
-func (r *ExpenseRepository) ValidateExpenseUserIsGroupMember(ctx context.Context, userId, expenseId string) (bool, error) {
-	uID, err := uuid.Parse(userId)
-	if err != nil {
-		return false, nil
-	}
 
-	eID, err := uuid.Parse(expenseId)
-	if err != nil {
-		return false, nil
-	}
 
-	_, err = r.q.ValidateExpenseUserIsGroupMember(ctx, sqlc.ValidateExpenseUserIsGroupMemberParams{
-		UserID:  uID,
-		GroupID: eID,
-	})
-	if err != nil {
-		return false, nil
-	}
 
-	return true, nil
-}
-
-func (r *ExpenseRepository) ValidateUserIsExpenseOwner(ctx context.Context, userId, expenseId string) (bool, error) {
-	uID, err := uuid.Parse(userId)
-	if err != nil {
-		return false, nil
-	}
-
-	eID, err := uuid.Parse(expenseId)
-	if err != nil {
-		return false, nil
-	}
-
-	_, err = r.q.ValidateUserIsExpenseOwner(ctx, sqlc.ValidateUserIsExpenseOwnerParams{
-		ID:     eID,
-		PaidBy: uID,
-	})
-	if err != nil {
-		return false, nil
-	}
-
-	return true, nil
-}
 
 func (r *ExpenseRepository) AddExpenseSplits(
 	ctx context.Context, expenseId string, userId string, amount int) (sqlc.ExpenseSplit, error) {
@@ -171,14 +121,4 @@ func (r *ExpenseRepository) GetExpenseSplitsByUserID(ctx context.Context, userId
 	return r.q.GetSplitsByUserId(ctx, uid)
 }
 
-func (r *ExpenseRepository) ValidateSplitTotalEqualsExpenseAmount(ctx context.Context, expenseId string) (bool, error) {
-	eId, err := uuid.Parse(expenseId)
-	if err != nil {
-		return false, err
-	}
-	result, err := r.q.ValidateSplitTotalEqualsExpense(ctx, eId)
-	if err != nil {
-		return false, err
-	}
-	return result > 0, nil
-}
+

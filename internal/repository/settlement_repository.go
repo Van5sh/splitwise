@@ -60,27 +60,4 @@ func (r *SettlementRepository) GetSettlementsByUserId(ctx context.Context, userI
 	return r.q.GetSettlementsByUserId(ctx, userUUID)
 }
 
-func (r *SettlementRepository) ValidateUsersInSameGroup(
-	ctx context.Context, user1, user2, groupId string) (bool, error) {
-	uid1, err := uuid.Parse(user1)
-	if err != nil {
-		return false, err
-	}
-	uid2, err := uuid.Parse(user2)
-	if err != nil {
-		return false, err
-	}
-	gId, err := uuid.Parse(groupId)
-	if err != nil {
-		return false, err
-	}
-	_, err = r.q.ValidateUsersInSameGroup(ctx, sqlc.ValidateUsersInSameGroupParams{
-		UserID:   uid1,
-		UserID_2: uid2,
-		GroupID:  gId,
-	})
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
+
