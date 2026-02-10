@@ -6,12 +6,18 @@ import (
 )
 
 type UserDetailsRouter struct {
-	handler *handler.BalanceHandler
+	handler *handler.UserDetailsHandler
 }
 
-func NewUserDetailsRouter(handler *handler.BalanceHandler) *BalanceRouter {
-	return &BalanceRouter{handler: handler}
+func NewUserDetailsRouter(handler *handler.UserDetailsHandler) *UserDetailsRouter {
+	return &UserDetailsRouter{handler: handler}
 }
 
-func (r *BalanceRouter) UserDetailsRoutes(app *fiber.App) {
+func (r *UserDetailsRouter) UserDetailsRoutes(app *fiber.App) {
+	details := app.Group("/userdetails")
+
+	details.Get(":email", r.handler.GetUserDetailsByEmail)
+	details.Post("/", r.handler.GetUserDetails)
+	details.Get("/check", r.handler.CheckUserInGroup)
+	details.Patch("/new", r.handler.UpdateUserDetails)
 }

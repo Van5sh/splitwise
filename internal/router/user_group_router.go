@@ -13,6 +13,8 @@ func NewUserGroupRouter(handler *handler.UserGroupHandler) *UserGroupRouter {
 	return &UserGroupRouter{handler: handler}
 }
 
-func (h *UserGroupRouter) UserGroupRoutes(app fiber.App) {
-
+func (r *UserGroupRouter) UserGroupRoutes(app *fiber.App) {
+	ugroup := app.Group("/groups")
+	ugroup.Post("/add", r.handler.AddUserToGroup)
+	ugroup.Post("/remove", r.handler.RemoveUserFromGroup)
 }
