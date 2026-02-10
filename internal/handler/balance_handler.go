@@ -27,3 +27,20 @@ func (h *BalanceHandler) GetUserBalanceInGroup(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"balance": balance})
 }
+
+func (h *BalanceHandler) GetGroupBalances(c *fiber.Ctx) error {
+	groupId := c.Params("groupId")
+	gId, err := helpers.ValidateID(groupId)
+	if err != nil {
+		return err
+	}
+	// err := helpers.ValidateGroupExists(c.Context(), &db.Queries{}, groupId)
+	res, err := h.services.GetGroupBalances(c.Context(), gId.String())
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": fiber.StatusOK,
+		"data":   res,
+	})
+}
