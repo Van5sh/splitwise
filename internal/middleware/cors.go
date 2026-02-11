@@ -1,6 +1,12 @@
 package middleware
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+)
 
 func Cors() fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -8,10 +14,15 @@ func Cors() fiber.Handler {
 		c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
 		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-		if c.Method() == "OPTIONS" {
-			return c.SendStatus(fiber.StatusNoContent)
+		cfg := cors.Config{
+			AllowOrigins:     "*",
+			AllowMethods:     "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS",
+			AllowHeaders:     fmt.Sprintf("Content-Type,Accept,Authorization,Origin,%s", c.Get("Access-Control-Request-Headers")),
+			ExposeHeaders:    "Content-Length,Content-Type",
+			AllowCredentials: true,
+			MaxAge:           int((12 * time.Hour).Seconds()),
 		}
 
-		return c.Next()
+		return cors.New(cfg)(c)
 	}
 }
