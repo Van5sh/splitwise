@@ -13,6 +13,7 @@ func Cors() fiber.Handler {
 		c.Set("Access-Control-Allow-Origin", "*")
 		c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
 		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// c.Set("Access-Control-Expose-Headers", "Content-Length,Content-Type")
 
 		cfg := cors.Config{
 			AllowOrigins:     "*",
