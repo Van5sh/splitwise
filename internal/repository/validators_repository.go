@@ -86,9 +86,14 @@ func (r *ExpenseRepository) ValidateExpenseUserIsGroupMember(ctx context.Context
 		return false, nil
 	}
 
+	expense, err := r.q.GetExpenseById(ctx, eID)
+	if err != nil {
+		return false, nil
+	}
+
 	_, err = r.q.ValidateExpenseUserIsGroupMember(ctx, sqlc.ValidateExpenseUserIsGroupMemberParams{
 		UserID:  uID,
-		GroupID: eID,
+		GroupID: expense.GroupID,
 	})
 	if err != nil {
 		return false, nil

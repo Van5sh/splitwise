@@ -15,8 +15,8 @@ func NewUserGroupHandler(service *services.UserGroupService) *UserGroupHandler {
 }
 
 func (h *UserGroupHandler) RemoveUserFromGroup(c *fiber.Ctx) error {
-	userID := c.Params("id")
-	groupID := c.Params("groupId")
+	userID := c.Params("user_id")
+	groupID := c.Params("group_id")
 
 	uid, err := helpers.ValidateID(userID)
 	if err != nil {
@@ -51,8 +51,8 @@ func (h *UserGroupHandler) RemoveUserFromGroup(c *fiber.Ctx) error {
 }
 
 func (h *UserGroupHandler) AddUserToGroup(c *fiber.Ctx) error {
-	userID := c.Params("id")
-	groupID := c.Params("groupId")
+	userID := c.Params("user_id")
+	groupID := c.Params("group_id")
 
 	uid, err := helpers.ValidateID(userID)
 	if err != nil {

@@ -16,12 +16,12 @@ func NewGroupRouter(handler *handler.GroupHandler) *GroupRouter {
 func (r *GroupRouter) GroupRouters(app *fiber.App) {
 	groups := app.Group("/groups")
 	groups.Get("/", r.handler.GetGroups)
-	groups.Get(":user_Id", r.handler.GetGroupsByUserId)
+	groups.Get("/user/:user_id", r.handler.GetGroupsByUserId)
 	groups.Get("/members/:group_id", r.handler.GetGroupMembers)
 	groups.Get("/admins/:group_id", r.handler.GetGroupAdmins)
-	groups.Get(":group_id", r.handler.GetGroupById)
+	groups.Get("/name/:name", r.handler.GetGroupByName)
+	groups.Get("/:id", r.handler.GetGroupById)
 	groups.Post("/new", r.handler.CreateGroup)
-	groups.Patch("/change", r.handler.UpdateGroup)
-	groups.Delete("/", r.handler.DeleteGroup)
-	groups.Get("/:name", r.handler.GetGroupByName)
+	groups.Patch("/:id", r.handler.UpdateGroup)
+	groups.Delete("/:id", r.handler.DeleteGroup)
 }

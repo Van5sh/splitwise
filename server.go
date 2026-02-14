@@ -26,7 +26,7 @@ func startServer(dbConn *sql.DB) {
 	userDetailsRepo := repository.NewUserDetailsRepository(queries)
 	userGroupRepo := repository.NewUserGroupRepository(queries)
 	settlementRepo := repository.NewSettlementRepository(queries)
-	expenseRepo := repository.NewExpenseRepository(queries)
+	expenseRepo := repository.NewExpenseRepository(dbConn, queries)
 	groupRepo := repository.NewGroupsRepository(queries)
 	balanceRepo := repository.NewBalanceRepository(queries)
 

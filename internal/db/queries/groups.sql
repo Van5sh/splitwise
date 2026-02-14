@@ -41,6 +41,13 @@ UPDATE groups SET
 WHERE id = $1
 RETURNING *;
 
+-- name: IncrementGroupTotalAmount :one
+UPDATE groups SET
+    total_amount = total_amount + $2,
+    updated_at = now()
+WHERE id = $1
+RETURNING *;
+
 
 -- name: DeleteGroupById :one
 DELETE FROM groups

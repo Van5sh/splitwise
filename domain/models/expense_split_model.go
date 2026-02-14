@@ -15,6 +15,11 @@ type ExpenseSplit struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type ExpenseSplitInput struct {
+	UserID string `json:"user_id"`
+	Amount int    `json:"amount"`
+}
+
 type GetBalanceInGroup struct {
 	UserID  uuid.UUID `json:"user_id"`
 	Balance float64   `json:"balance"`

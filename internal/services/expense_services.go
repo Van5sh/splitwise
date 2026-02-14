@@ -88,8 +88,32 @@ func (s *ExpenseServices) GetExpenseByUserId(ctx context.Context, id string) ([]
 	return expense, nil
 }
 
-func (s *ExpenseServices) CreateExpense(ctx context.Context, groupId, userId, description string, amount int) (models.Expense, error) {
-	expense, err := s.repo.CreateExpense(ctx, groupId, userId, description, amount)
+func (s *ExpenseServices) CreateExpense(
+	ctx context.Context,
+	groupId, userId, description string,
+	amount int,
+	splits []models.ExpenseSplitInput,
+) (models.Expense, error) {
+	expense, err := s.repo.CreateExpense(ctx, groupId, userId, description, amount, splits)
+	if err != nil {
+		return models.Expense{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return models.Expense{
+		ID:          expense.ID,
+		GroupID:     expense.GroupID,
+		PaidBy:      expense.PaidBy,
+		Description: expense.Description.String,
+		CreatedAt:   expense.CreatedAt,
+		UpdatedAt:   expense.UpdatedAt,
+	}, nil
+}
+
+func (s *ExpenseServices) CreateIndividualExpense(
+	ctx context.Context,
+	fromUserId, toUserId, description string,
+	amount int,
+) (models.Expense, error) {
+	expense, err := s.repo.CreateIndividualExpense(ctx, fromUserId, toUserId, description, amount)
 	if err != nil {
 		return models.Expense{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -119,8 +143,13 @@ func (s *ExpenseServices) ValidateExpenseExists(ctx context.Context, id string) 
 	return exists, nil
 }
 
-func (s *ExpenseServices) UpdateExpense(ctx context.Context, id, description string, amount int) (models.Expense, error) {
-	expense, err := s.repo.UpdateExpense(ctx, id, description, amount)
+func (s *ExpenseServices) UpdateExpense(
+	ctx context.Context,
+	id, description string,
+	amount int,
+	splits []models.ExpenseSplitInput,
+) (models.Expense, error) {
+	expense, err := s.repo.UpdateExpense(ctx, id, description, amount, splits)
 	if err != nil {
 		return models.Expense{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}

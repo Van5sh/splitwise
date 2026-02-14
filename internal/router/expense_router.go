@@ -16,6 +16,7 @@ func NewExpenseRouter(handler *handler.ExpenseHandler) *ExpenseRouter {
 func (r *ExpenseRouter) ExpenseRouters(app *fiber.App) {
 	expense := app.Group("/expense")
 	expense.Get("/", r.handler.GetExpense)
+	expense.Post("/individual", r.handler.CreateIndividualExpense)
 	expense.Get("/group/:group_id", r.handler.GetExpenseByGroupID)
 	expense.Get("/:id", r.handler.GetExpenseByID)
 	expense.Delete("/:id", r.handler.DeleteExpenseByID)

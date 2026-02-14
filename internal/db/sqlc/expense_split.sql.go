@@ -44,6 +44,16 @@ func (q *Queries) AddExpenseSplits(ctx context.Context, arg AddExpenseSplitsPara
 	return i, err
 }
 
+const deleteSplitsByExpenseId = `-- name: DeleteSplitsByExpenseId :exec
+DELETE FROM expense_splits
+WHERE expense_id = $1
+`
+
+func (q *Queries) DeleteSplitsByExpenseId(ctx context.Context, expenseID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteSplitsByExpenseId, expenseID)
+	return err
+}
+
 const getSplitsByExpenseId = `-- name: GetSplitsByExpenseId :many
 SELECT id, expense_id, user_id, amount, created_at, updated_at FROM expense_splits 
 WHERE expense_id = $1

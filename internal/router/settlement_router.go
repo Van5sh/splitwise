@@ -15,9 +15,9 @@ func NewSettlementRouter(handler *handler.SettlementHandler) *SettlementRouter {
 
 func (r *SettlementRouter) SettlementRouters(app *fiber.App) {
 	settlement := app.Group("/settlement")
-	settlement.Get(":id", r.handler.GetSettlementById)
-	settlement.Get(":groupId", r.handler.GetSettlementsByGroupId)
-	settlement.Get(":userID", r.handler.GetSettlementsByUserId)
+	settlement.Get("/:id", r.handler.GetSettlementById)
+	settlement.Get("/group/:group_id", r.handler.GetSettlementsByGroupId)
+	settlement.Get("/user/:user_id", r.handler.GetSettlementsByUserId)
 	settlement.Post("/add", r.handler.AddSettlement)
-	settlement.Delete("/", r.handler.DeleteSettlementById)
+	settlement.Delete("/:id", r.handler.DeleteSettlementById)
 }

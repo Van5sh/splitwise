@@ -60,7 +60,7 @@ func (h *SettlementHandler) GetSettlementsByGroupId(c *fiber.Ctx) error {
 
 func (h *SettlementHandler) GetSettlementsByUserId(c *fiber.Ctx) error {
 	userId := c.Params("user_id")
-	settlements, err := h.services.GetSettlementById(c.Context(), userId)
+	settlements, err := h.services.GetSettlementByUserID(c.Context(), userId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

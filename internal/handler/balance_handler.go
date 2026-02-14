@@ -29,18 +29,19 @@ func (h *BalanceHandler) GetUserBalanceInGroup(c *fiber.Ctx) error {
 }
 
 func (h *BalanceHandler) GetGroupBalances(c *fiber.Ctx) error {
-	groupId := c.Params("groupId")
+	groupId := c.Params("group_id")
 	gId, err := helpers.ValidateID(groupId)
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid group ID"})
 	}
 	// err := helpers.ValidateGroupExists(c.Context(), &db.Queries{}, groupId)
 	res, err := h.services.GetGroupBalances(c.Context(), gId.String())
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": fiber.StatusOK,
-		"data":   res,
+		"status":  fiber.StatusOK,
+		"data":    res,
+		"groupId": groupId,
 	})
 }

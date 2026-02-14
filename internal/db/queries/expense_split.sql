@@ -18,6 +18,10 @@ WHERE expense_id = $1;
 SELECT * FROM expense_splits 
 WHERE user_id = $1;
 
+-- name: DeleteSplitsByExpenseId :exec
+DELETE FROM expense_splits
+WHERE expense_id = $1;
+
 -- name: ValidateSplitTotalEqualsExpense :one
 SELECT 1
 FROM expenses e

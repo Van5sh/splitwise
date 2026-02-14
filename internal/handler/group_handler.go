@@ -54,7 +54,10 @@ func (h *GroupHandler) GetGroupById(c *fiber.Ctx) error {
 }
 
 func (h *GroupHandler) GetGroupByName(c *fiber.Ctx) error {
-	groupName := c.Query("group_name")
+	groupName := c.Params("name")
+	if groupName == "" {
+		groupName = c.Query("group_name")
+	}
 	group, err := h.services.GetGroupByName(c.Context(), groupName)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

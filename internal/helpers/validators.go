@@ -12,14 +12,11 @@ import (
 	"github.com/google/uuid"
 )
 
-
-
 type CreateExpenseRequest struct {
 	GroupID string
 	Amount  float64
 	Note    string
 }
-
 
 func ValidateCreateExpense(req CreateExpenseRequest) error {
 	if req.GroupID == "" {
@@ -176,9 +173,17 @@ func ValidateExpenseUserIsGroupMember(
 		return err
 	}
 
+	expense, err := q.GetExpenseById(ctx, eid)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("expense not found")
+		}
+		return err
+	}
+
 	_, err = q.ValidateExpenseUserIsGroupMember(ctx, sqlc.ValidateExpenseUserIsGroupMemberParams{
 		UserID:  uid,
-		GroupID: eid,
+		GroupID: expense.GroupID,
 	})
 
 	if err != nil {
@@ -244,8 +249,6 @@ func ValidateSplitTotalEqualsExpenseAmount(
 
 	return nil
 }
-
-
 
 func ValidateFormRequiredString(value, fieldName string) error {
 	if strings.TrimSpace(value) == "" {
@@ -319,7 +322,3 @@ func ValidateFormMimeType(
 
 	return errors.New(fieldName + " has invalid file type")
 }
-
-
-
-

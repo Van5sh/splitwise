@@ -18,16 +18,25 @@ func NewBalanceRepository(q *sqlc.Queries) *BalanceRepository {
 }
 
 func (r *BalanceRepository) GetUserBalanceInGroup(ctx context.Context, userId string, groupId string) (int32, error) {
-	userIdUUID, _ := uuid.Parse(userId)
-	groupIdUUID, _ := uuid.Parse(groupId)
+	userIdUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return 0, err
+	}
+	groupIdUUID, err := uuid.Parse(groupId)
+	if err != nil {
+		return 0, err
+	}
 	return r.q.GetUserBalanceInGroup(ctx, sqlc.GetUserBalanceInGroupParams{
-		UserID:  userIdUUID,
+		PaidBy:  userIdUUID,
 		GroupID: groupIdUUID,
 	})
 }
 
 func (r *BalanceRepository) GetGroupBalances(ctx context.Context, id string) ([]sqlc.GetGroupBalanceRow, error) {
-	groupId, _ := uuid.Parse(id)
+	groupId, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
 
 	return r.q.GetGroupBalance(ctx, groupId)
 }

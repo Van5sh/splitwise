@@ -32,7 +32,7 @@ func (s *SettlementService) GetSettlementById(ctx context.Context, id string) (m
 }
 
 func (s *SettlementService) AddSettlement(ctx context.Context, groupId, fromUserId, toUserId, amount string) (models.Settlement, error) {
-	_, err := s.repo.GetSettlementById(ctx, groupId)
+	_, err := s.repo.ValidateUsersInSameGroup(ctx, fromUserId, toUserId, groupId)
 	if err != nil {
 		return models.Settlement{}, err
 	}

@@ -304,6 +304,33 @@ func (q *Queries) GetUserRoleInGroup(ctx context.Context, arg GetUserRoleInGroup
 	return role, err
 }
 
+const incrementGroupTotalAmount = `-- name: IncrementGroupTotalAmount :one
+UPDATE groups SET
+    total_amount = total_amount + $2,
+    updated_at = now()
+WHERE id = $1
+RETURNING id, group_name, description, total_amount, created_at, updated_at
+`
+
+type IncrementGroupTotalAmountParams struct {
+	ID          uuid.UUID
+	TotalAmount string
+}
+
+func (q *Queries) IncrementGroupTotalAmount(ctx context.Context, arg IncrementGroupTotalAmountParams) (Group, error) {
+	row := q.db.QueryRowContext(ctx, incrementGroupTotalAmount, arg.ID, arg.TotalAmount)
+	var i Group
+	err := row.Scan(
+		&i.ID,
+		&i.GroupName,
+		&i.Description,
+		&i.TotalAmount,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateGroup = `-- name: UpdateGroup :one
 UPDATE groups SET
     group_name = COALESCE($2, group_name),
