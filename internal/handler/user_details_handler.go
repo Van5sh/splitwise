@@ -22,15 +22,13 @@ func (h *UserDetailsHandler) GetUserDetails(c *fiber.Ctx) error {
 	userId := c.Params("id")
 	uid, err := helpers.ValidateID(userId)
 	if err != nil {
-		c.Status(fiber.StatusBadRequest).JSON(
+		return c.Status(fiber.StatusBadRequest).JSON(
 			"Invalid user id",
 		)
 	}
 	user, err := h.services.GetUserDetailsByUserID(c.Context(), uid.String())
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).JSON(
-			"Error fetching user details",
-		)
+		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"user":   user,
@@ -49,9 +47,7 @@ func (h *UserDetailsHandler) GetUserDetailsByEmail(c *fiber.Ctx) error {
 	}
 	user, err := h.services.GetUserDetailsByEmail(c.Context(), email)
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).JSON(
-			"Error fetching user details",
-		)
+		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"user":   user,

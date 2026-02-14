@@ -52,10 +52,14 @@ func (r *ExpenseRepository) CreateExpense(ctx context.Context, groupId, userId, 
 		return sqlc.Expense{}, err
 	}
 
-	_ = userId
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return sqlc.Expense{}, err
+	}
 
 	return r.q.CreateExpense(ctx, sqlc.CreateExpenseParams{
 		GroupID:     groupUUID,
+		PaidBy:      userUUID,
 		Description: sql.NullString{String: description, Valid: description != ""},
 		Amount:      strconv.Itoa(amount),
 	})

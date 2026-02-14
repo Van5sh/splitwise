@@ -71,9 +71,16 @@ func (h *GroupHandler) GetGroupByName(c *fiber.Ctx) error {
 }
 
 func (h *GroupHandler) CreateGroup(c *fiber.Ctx) error {
-	groupName := c.FormValue("groupName")
-	description := c.FormValue("description")
-	group, err := h.services.CreateGroup(c.Context(), groupName, description)
+	var request struct {
+		GroupName   string `json:"groupName"`
+		Description string `json:"description"`
+	}
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+	group, err := h.services.CreateGroup(c.Context(), request.GroupName, request.Description)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -157,9 +164,16 @@ func (h *GroupHandler) DeleteGroup(c *fiber.Ctx) error {
 }
 func (h *GroupHandler) UpdateGroup(c *fiber.Ctx) error {
 	id := c.Params("id")
-	groupName := c.FormValue("groupName")
-	description := c.FormValue("description")
-	group, err := h.services.UpdateGroup(c.Context(), id, groupName, description)
+	var request struct {
+		GroupName   string `json:"groupName"`
+		Description string `json:"description"`
+	}
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+	group, err := h.services.UpdateGroup(c.Context(), id, request.GroupName, request.Description)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

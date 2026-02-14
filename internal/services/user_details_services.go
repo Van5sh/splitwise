@@ -2,9 +2,12 @@ package services
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/Van5sh/new-splitwise/domain/models"
 	domain "github.com/Van5sh/new-splitwise/domain/repositories"
+	"github.com/Van5sh/new-splitwise/internal/helpers"
 )
 
 type UserDetailsService struct {
@@ -18,26 +21,36 @@ func NewUserDetailsService(repo domain.UserDetailsRepository) *UserDetailsServic
 func (s *UserDetailsService) GetUserDetailsByUserID(ctx context.Context, id string) (models.UserDetails, error) {
 	res, err := s.repo.GetUserDetailsByUserID(ctx, id)
 	if err != nil {
-		return models.UserDetails{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.UserDetails{}, helpers.NotFound("User details not found", nil, err)
+		}
+		return models.UserDetails{}, helpers.InternalServerError("Error fetching user details", nil, err)
 	}
 	return models.UserDetails{
 		ID:        res.ID,
 		User_ID:   res.UserID,
 		User_Name: res.UserName,
 		Email:     res.Email,
+		CreatedAt: res.CreatedAt,
+		UpdatedAt: res.UpdatedAt,
 	}, nil
 }
 
 func (s *UserDetailsService) GetUserDetailsByEmail(ctx context.Context, email string) (models.UserDetails, error) {
 	res, err := s.repo.GetUserDetailsByEmail(ctx, email)
 	if err != nil {
-		return models.UserDetails{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.UserDetails{}, helpers.NotFound("User details not found", nil, err)
+		}
+		return models.UserDetails{}, helpers.InternalServerError("Error fetching user details", nil, err)
 	}
 	return models.UserDetails{
 		ID:        res.ID,
 		User_ID:   res.UserID,
 		User_Name: res.UserName,
 		Email:     res.Email,
+		CreatedAt: res.CreatedAt,
+		UpdatedAt: res.UpdatedAt,
 	}, nil
 }
 
