@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -58,14 +59,29 @@ func (q *Queries) GetUserDetailsByEmail(ctx context.Context, email string) (User
 }
 
 const getUserDetailsByUserId = `-- name: GetUserDetailsByUserId :one
-SELECT id, user_id, user_name, email, created_at, updated_at
+SELECT user_details.id, user_id, user_name, email, user_details.created_at, user_details.updated_at, users.id, firebase_uid, role, users.created_at, users.updated_at
 FROM user_details
-WHERE user_id = $1
+JOIN users ON user_details.user_id = users.id
+WHERE user_details.user_id = $1
 `
 
-func (q *Queries) GetUserDetailsByUserId(ctx context.Context, userID uuid.UUID) (UserDetail, error) {
+type GetUserDetailsByUserIdRow struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	UserName    string
+	Email       string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ID_2        uuid.UUID
+	FirebaseUid string
+	Role        string
+	CreatedAt_2 time.Time
+	UpdatedAt_2 time.Time
+}
+
+func (q *Queries) GetUserDetailsByUserId(ctx context.Context, userID uuid.UUID) (GetUserDetailsByUserIdRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserDetailsByUserId, userID)
-	var i UserDetail
+	var i GetUserDetailsByUserIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
@@ -73,6 +89,11 @@ func (q *Queries) GetUserDetailsByUserId(ctx context.Context, userID uuid.UUID) 
 		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ID_2,
+		&i.FirebaseUid,
+		&i.Role,
+		&i.CreatedAt_2,
+		&i.UpdatedAt_2,
 	)
 	return i, err
 }

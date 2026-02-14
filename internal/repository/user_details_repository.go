@@ -16,10 +16,10 @@ func NewUserDetailsRepository(q *sqlc.Queries) *UserDetailsRepository {
 	return &UserDetailsRepository{q: q}
 }
 
-func (r *UserDetailsRepository) GetUserDetailsByUserID(ctx context.Context, id string) (sqlc.UserDetail, error) {
+func (r *UserDetailsRepository) GetUserDetailsByUserID(ctx context.Context, id string) (sqlc.GetUserDetailsByUserIdRow, error) {
 	userID, err := uuid.Parse(id)
 	if err != nil {
-		return sqlc.UserDetail{}, nil
+		return sqlc.GetUserDetailsByUserIdRow{}, err
 	}
 	return r.q.GetUserDetailsByUserId(ctx, userID)
 }

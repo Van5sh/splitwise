@@ -1,7 +1,8 @@
 -- name: GetUserDetailsByUserId :one
 SELECT *
 FROM user_details
-WHERE user_id = $1;
+JOIN users ON user_details.user_id = users.id
+WHERE user_details.user_id = $1;
 
 -- name: GetUserDetailsByEmail :one
 SELECT *

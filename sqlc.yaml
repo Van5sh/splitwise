@@ -1,7 +1,15 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    schema: "./internal/db/migrations"
+    schema:
+      - "./internal/db/migrations/001_migrations_user_up.sql"
+      - "./internal/db/migrations/002_migrations_userDetails.sql"
+      - "./internal/db/migrations/003_migrations_groups_up.sql"
+      - "./internal/db/migrations/004_migrations_expenses.sql"
+      - "./internal/db/migrations/005_migration_expensesplit.sql"
+      - "./internal/db/migrations/006_migrations_settlements_up.sql"
+      - "./internal/db/migrations/007_migrations_usergroup_up.sql"
+      - "./internal/db/migrations/008_migrations_friends.sql"
     queries: "./internal/db/queries"
     gen:
       go:
