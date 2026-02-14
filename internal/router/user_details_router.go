@@ -17,7 +17,7 @@ func (r *UserDetailsRouter) UserDetailsRoutes(app *fiber.App) {
 	details := app.Group("/userdetails")
 
 	details.Get(":email", r.handler.GetUserDetailsByEmail)
-	details.Post("/", r.handler.GetUserDetails)
+	details.Get("/:id", r.handler.GetUserDetails)
 	details.Get("/check", r.handler.CheckUserInGroup)
 	details.Patch("/new", r.handler.UpdateUserDetails)
 }

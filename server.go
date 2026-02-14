@@ -16,6 +16,7 @@ import (
 func startServer(dbConn *sql.DB) {
 	app := fiber.New()
 	app.Use(logger.New())
+	app.Use(middleware.RequestTimingMiddleware())
 	app.Use(middleware.ErrorResponseMiddleware())
 	// TODO: Add CORS middleware
 	// TODO: Add authentication middleware
