@@ -20,5 +20,4 @@ func (r *SettlementRouter) SettlementRouters(app *fiber.App) {
 	settlement.Get(":userID", r.handler.GetSettlementsByUserId)
 	settlement.Post("/add", r.handler.AddSettlement)
 	settlement.Delete("/", r.handler.DeleteSettlementById)
-
 }

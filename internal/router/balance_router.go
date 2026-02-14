@@ -14,5 +14,7 @@ func NewBalanceRouter(handler *handler.BalanceHandler) *BalanceRouter {
 }
 
 func (r *BalanceRouter) BalanceRouters(app *fiber.App) {
-
+	balance := app.Group("/balance")
+	balance.Get("/:user_id", r.handler.GetGroupBalances)
+	balance.Get("/group/:group_id", r.handler.GetUserBalanceInGroup)
 }
