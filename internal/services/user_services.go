@@ -2,11 +2,9 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/Van5sh/new-splitwise/domain/models"
 	domain "github.com/Van5sh/new-splitwise/domain/repositories"
-	"github.com/google/uuid"
 )
 
 type UserServices struct {
@@ -55,22 +53,10 @@ func (s *UserServices) CreateUser(ctx context.Context, userName string, Firebase
 		return models.User{}, err
 	}
 	repo := s.repo.WithTx(tx)
-	dbUser, err := repo.GetUserByName(ctx, userName)
-	if err != nil {
-		return models.User{}, err
-	}
-	if dbUser.ID != uuid.Nil {
-		tx.Rollback()
-		return models.User{}, errors.New("user already exists")
-	}
 	newUser, err := repo.CreateUser(ctx, FirebaseID, role)
 	if err != nil {
 		tx.Rollback()
 		return models.User{}, err
-	}
-	if newUser.ID == uuid.Nil {
-		tx.Rollback()
-		return models.User{}, errors.New("failed to create user")
 	}
 	_, err = repo.CreateUserDetails(ctx, newUser.ID.String(), userName, email)
 	if err != nil {

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	domain "github.com/Van5sh/new-splitwise/domain/repositories"
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
@@ -36,6 +37,9 @@ func (r *UserRepository) GetUsers(ctx context.Context) ([]sqlc.User, error) {
 func (r *UserRepository) GetUserByName(ctx context.Context, name string) (sqlc.User, error) {
 	row, err := r.q.GetUserByName(ctx, name)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return sqlc.User{}, nil
+		}
 		return sqlc.User{}, err
 	}
 	return sqlc.User{

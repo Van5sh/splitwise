@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strings"
+
 	//	"github.com/Van5sh/new-splitwise/internal/helpers/response"
 
 	"github.com/Van5sh/new-splitwise/internal/services"
@@ -49,18 +51,36 @@ func (h *UserHandler) GetUserId(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-	var body struct {
-		UserName   string `json:"user_name"`
-		FirebaseID string `json:"firebase_id"`
-		Role       string `json:"role"`
-		Email      string `json:"email"`
-	}
+	var body map[string]interface{}
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
 	}
-	res, err := h.services.CreateUser(c.Context(), body.UserName, body.FirebaseID, body.Role, body.Email)
+
+	getString := func(keys ...string) string {
+		for _, k := range keys {
+			if v, ok := body[k]; ok {
+				if s, ok := v.(string); ok {
+					return strings.TrimSpace(s)
+				}
+			}
+		}
+		return ""
+	}
+
+	userName := getString("user_name", "UserName", "username", "userName")
+	firebaseID := getString("firebase_id", "FirebaseID", "firebaseId")
+	role := getString("role", "Role")
+	email := getString("email", "Email")
+
+	if userName == "" || firebaseID == "" || role == "" || email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "user_name/UserName, firebase_id/FirebaseID, role and email are required",
+		})
+	}
+
+	res, err := h.services.CreateUser(c.Context(), userName, firebaseID, role, email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

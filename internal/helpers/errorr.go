@@ -1,10 +1,14 @@
 package helpers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type ErrorsResponse struct {
@@ -72,4 +76,37 @@ func Unauthorized(message string, details interface{}, err error) *ErrorsRespons
 
 func Forbidden(message string, details interface{}, err error) *ErrorsResponse {
 	return newAppError("forbidden", message, details, 403, err)
+}
+
+func NormalizeError(err error) *ErrorsResponse {
+	if err == nil {
+		return nil
+	}
+
+	var appErr *ErrorsResponse
+	if errors.As(err, &appErr) {
+		return appErr
+	}
+
+	var fiberErr *fiber.Error
+	if errors.As(err, &fiberErr) {
+		return newAppError(
+			"http_error",
+			fiberErr.Message,
+			nil,
+			fiberErr.Code,
+			err,
+		)
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return NotFound("Resource not found", nil, err)
+	}
+
+	// Some wrapped DB drivers lose sql.ErrNoRows identity but keep message text.
+	if strings.Contains(strings.ToLower(err.Error()), "no rows in result set") {
+		return NotFound("Resource not found", nil, err)
+	}
+
+	return InternalServerError("Internal Server Error", nil, err)
 }
