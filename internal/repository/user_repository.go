@@ -4,21 +4,28 @@ import (
 	"context"
 	"database/sql"
 
+	domain "github.com/Van5sh/new-splitwise/domain/repositories"
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
 	"github.com/google/uuid"
 )
 
 type UserRepository struct {
-	q *sqlc.Queries
+	db *sql.DB
+	q  *sqlc.Queries
 }
 
-func NewUserRepository(q *sqlc.Queries) *UserRepository {
-	return &UserRepository{q: q}
+func NewUserRepository(db *sql.DB, q *sqlc.Queries) *UserRepository {
+	return &UserRepository{db: db, q: q}
 }
 
-func (r *UserRepository) WithTx(tx *sql.Tx) *UserRepository {
+func (r *UserRepository) BeginTx(ctx context.Context) (*sql.Tx, error) {
+	return r.db.BeginTx(ctx, nil)
+}
+
+func (r *UserRepository) WithTx(tx *sql.Tx) domain.UserRepository {
 	return &UserRepository{
-		q: r.q.WithTx(tx),
+		db: r.db,
+		q:  r.q.WithTx(tx),
 	}
 }
 
@@ -91,5 +98,3 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id string) (sqlc.User, 
 	}
 	return sqlc.User{}, nil
 }
-
-

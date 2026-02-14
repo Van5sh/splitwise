@@ -42,7 +42,7 @@ func (s *UserDetailsService) GetUserDetailsByEmail(ctx context.Context, email st
 }
 
 func (s *UserDetailsService) CheckUserInGroupParams(ctx context.Context, userId, groupId string) (int32, error) {
-	return s.repo.CheckUserInGroupParams(ctx, userId, groupId)
+	return s.repo.CheckUserInGroup(ctx, userId, groupId)
 }
 
 func (s *UserDetailsService) CheckUserIsGroupAdmin(ctx context.Context, userId, groupId string) (int32, error) {

@@ -72,7 +72,7 @@ func (s *UserServices) CreateUser(ctx context.Context, userName string, Firebase
 		tx.Rollback()
 		return models.User{}, errors.New("failed to create user")
 	}
-	_, err = repo.CreateUserDetasils(ctx, newUser.ID.String(), userName, email)
+	_, err = repo.CreateUserDetails(ctx, newUser.ID.String(), userName, email)
 	if err != nil {
 		tx.Rollback()
 		return models.User{}, err

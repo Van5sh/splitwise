@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -24,7 +25,6 @@ func ErrorResponseMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		defer func() {
 			if r := recover(); r != nil {
-
 				logger.Error("panic recovered", map[string]interface{}{
 					"error": r,
 					// "requestId": requestID,
@@ -35,7 +35,7 @@ func ErrorResponseMiddleware() fiber.Handler {
 				_ = c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 					"code":      "internal_server_error",
 					"message":   "Something went wrong",
-					"timestamp": time.Now().Unix(),
+					"timestamp": time.Now().UTC().Format(time.RFC3339),
 					// "requestId": requestID,
 				})
 			}
@@ -44,9 +44,8 @@ func ErrorResponseMiddleware() fiber.Handler {
 		err = c.Next()
 
 		if err != nil {
-
-			// HANDLE CUSTOM APP ERROR
-			if appErr, ok := err.(*helpers.ErrorsResponse); ok {
+			var appErr *helpers.ErrorsResponse
+			if errors.As(err, &appErr) {
 
 				logger.Error("application error", map[string]interface{}{
 					"code":    appErr.Code,
@@ -61,8 +60,24 @@ func ErrorResponseMiddleware() fiber.Handler {
 					"code":      appErr.Code,
 					"message":   appErr.Message,
 					"details":   appErr.Details,
-					"timestamp": time.Now().Unix(),
+					"timestamp": appErr.Timestamp,
 					// "requestId": requestID,
+				})
+			}
+
+			// HANDLE FIBER HTTP ERROR
+			if fErr, ok := err.(*fiber.Error); ok {
+				logger.Error("fiber error", map[string]interface{}{
+					"code":   fErr.Code,
+					"error":  fErr.Message,
+					"path":   c.Path(),
+					"method": c.Method(),
+				})
+
+				return c.Status(fErr.Code).JSON(fiber.Map{
+					"code":      "http_error",
+					"message":   fErr.Message,
+					"timestamp": time.Now().UTC().Format(time.RFC3339),
 				})
 			}
 
@@ -77,7 +92,7 @@ func ErrorResponseMiddleware() fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"code":      "internal_server_error",
 				"message":   "Internal Server Error",
-				"timestamp": time.Now().Unix(),
+				"timestamp": time.Now().UTC().Format(time.RFC3339),
 				// "requestId": requestID,
 			})
 		}

@@ -28,10 +28,18 @@ func (r *SettlementRepository) AddSettlement(ctx context.Context, groupId, fromU
 	if err != nil {
 		return sqlc.Settlement{}, err
 	}
+	fromUserUUID, err := uuid.Parse(fromUserId)
+	if err != nil {
+		return sqlc.Settlement{}, err
+	}
+	toUserUUID, err := uuid.Parse(toUserId)
+	if err != nil {
+		return sqlc.Settlement{}, err
+	}
 	return r.q.AddSettlement(ctx, sqlc.AddSettlementParams{
 		GroupID:    groupUUID,
-		FromUserID: uuid.MustParse(fromUserId),
-		ToUserID:   uuid.MustParse(toUserId),
+		FromUserID: fromUserUUID,
+		ToUserID:   toUserUUID,
 		Amount:     amount,
 	})
 }
@@ -59,5 +67,3 @@ func (r *SettlementRepository) GetSettlementsByUserId(ctx context.Context, userI
 	}
 	return r.q.GetSettlementsByUserId(ctx, userUUID)
 }
-
-

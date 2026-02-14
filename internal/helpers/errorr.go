@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -26,6 +28,18 @@ func (e *ErrorsResponse) Unwrap() error {
 }
 
 func newAppError(code, message string, details interface{}, status int, err error) *ErrorsResponse {
+	if status <= 0 {
+		status = http.StatusInternalServerError
+	}
+	code = strings.TrimSpace(code)
+	if code == "" {
+		code = "internal_server_error"
+	}
+	message = strings.TrimSpace(message)
+	if message == "" {
+		message = http.StatusText(status)
+	}
+
 	return &ErrorsResponse{
 		Code:      code,
 		Message:   message,

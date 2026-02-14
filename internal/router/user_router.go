@@ -14,7 +14,7 @@ func NewUserRouter(handler *handler.UserHandler) *UserRouter {
 }
 
 func (r *UserRouter) RegisterUserRoutes(app *fiber.App) {
-	user := app.Group("users")
+	user := app.Group("/users")
 
 	user.Get("/", r.handler.GetUsers)
 	user.Get("/user/:id", r.handler.GetUserId)

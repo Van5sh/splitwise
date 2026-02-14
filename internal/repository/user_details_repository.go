@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
 	"github.com/google/uuid"
@@ -42,11 +41,10 @@ func (r *UserDetailsRepository) CreateUserDetails(ctx context.Context, userID st
 }
 
 func (r *UserDetailsRepository) UpdateUserDetails(ctx context.Context, id, UserName string, email string) (sqlc.UserDetail, error) {
-	userId, err := uuid.Parse(id)
+	_, err := uuid.Parse(id)
 	if err != nil {
 		return sqlc.UserDetail{}, err
 	}
-	fmt.Print(userId)
 	return r.q.UpdateUserDetails(ctx, sqlc.UpdateUserDetailsParams{
 		UserName: UserName,
 		Email:    email,

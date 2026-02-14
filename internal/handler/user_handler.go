@@ -49,11 +49,18 @@ func (h *UserHandler) GetUserId(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-	userName := c.FormValue("user_name")
-	FirebaseID := c.FormValue("firebase_id")
-	role := c.FormValue("role")
-	email := c.FormValue("email")
-	res, err := h.services.CreateUser(c.Context(), userName, FirebaseID, role, email)
+	var body struct {
+		UserName   string `json:"user_name"`
+		FirebaseID string `json:"firebase_id"`
+		Role       string `json:"role"`
+		Email      string `json:"email"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+	res, err := h.services.CreateUser(c.Context(), body.UserName, body.FirebaseID, body.Role, body.Email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

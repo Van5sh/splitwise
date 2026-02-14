@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
 	"github.com/google/uuid"
 )
@@ -69,12 +68,13 @@ func (r *GroupsRepository) UpdateGroup(
 	})
 }
 
-func (r *GroupsRepository) DeleteGroup(ctx context.Context, id string) (sqlc.Group, error) {
+func (r *GroupsRepository) DeleteGroup(ctx context.Context, id string) error {
 	groupID, err := uuid.Parse(id)
 	if err != nil {
-		return sqlc.Group{}, err
+		return err
 	}
-	return r.q.DeleteGroupById(ctx, groupID)
+	_, err = r.q.DeleteGroupById(ctx, groupID)
+	return err
 }
 
 func (r *GroupsRepository) GetGroupsByUserId(
@@ -106,5 +106,3 @@ func (r *GroupsRepository) GetGroupAdmins(ctx context.Context, id string) ([]sql
 	}
 	return r.q.GetGroupAdmins(ctx, groupID)
 }
-
-

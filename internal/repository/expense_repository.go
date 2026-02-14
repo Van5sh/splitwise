@@ -61,15 +61,14 @@ func (r *ExpenseRepository) CreateExpense(ctx context.Context, groupId, userId, 
 	})
 }
 
-func (r *ExpenseRepository) DeleteExpense(ctx context.Context, id string) (sqlc.Expense, error) {
+func (r *ExpenseRepository) DeleteExpense(ctx context.Context, id string) error {
 	expenseId, err := uuid.Parse(id)
 	if err != nil {
-		return sqlc.Expense{}, err
+		return err
 	}
-	return r.q.DeleteExpense(ctx, expenseId)
+	_, err = r.q.DeleteExpense(ctx, expenseId)
+	return err
 }
-
-
 
 func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description string, amount int) (sqlc.Expense, error) {
 	expenseId, err := uuid.Parse(id)
@@ -82,10 +81,6 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 		Amount:      strconv.Itoa(amount),
 	})
 }
-
-
-
-
 
 func (r *ExpenseRepository) AddExpenseSplits(
 	ctx context.Context, expenseId string, userId string, amount int) (sqlc.ExpenseSplit, error) {
@@ -120,5 +115,3 @@ func (r *ExpenseRepository) GetExpenseSplitsByUserID(ctx context.Context, userId
 	}
 	return r.q.GetSplitsByUserId(ctx, uid)
 }
-
-
