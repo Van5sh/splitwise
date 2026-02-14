@@ -102,7 +102,7 @@ func (q *Queries) DeleteGroupById(ctx context.Context, id uuid.UUID) (Group, err
 }
 
 const getGroupAdmins = `-- name: GetGroupAdmins :many
-SELECT u.id, u.firebase_uid, u.role, u.created_at, u.updated_at
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at
 FROM users u
 JOIN user_groups ug ON u.id = ug.user_id
 WHERE ug.group_id = $1
@@ -121,7 +121,7 @@ func (q *Queries) GetGroupAdmins(ctx context.Context, groupID uuid.UUID) ([]User
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirebaseUid,
-			&i.Role,
+			&i.UserName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -179,7 +179,7 @@ func (q *Queries) GetGroupByName(ctx context.Context, groupName string) (Group, 
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT u.id, u.firebase_uid, u.role, u.created_at, u.updated_at
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at
 FROM users u
 JOIN user_groups ug ON u.id = ug.user_id
 WHERE ug.group_id = $1
@@ -197,7 +197,7 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]Use
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirebaseUid,
-			&i.Role,
+			&i.UserName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

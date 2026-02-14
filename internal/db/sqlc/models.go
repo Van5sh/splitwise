@@ -28,6 +28,7 @@ type ExpenseSplit struct {
 	Amount    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	PaidTo    uuid.UUID
 }
 
 type Friend struct {
@@ -59,7 +60,7 @@ type Settlement struct {
 type User struct {
 	ID          uuid.UUID
 	FirebaseUid string
-	Role        string
+	UserName    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -67,7 +68,6 @@ type User struct {
 type UserDetail struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
-	UserName  string
 	Email     string
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -11,7 +11,7 @@ DELETE FROM users WHERE id = $1;
 SELECT * FROM users WHERE firebase_uid = $1;
 
 -- name: GetUserByEmail :one
-SELECT u.*, ud.user_name, ud.email
+SELECT u.*, ud.email
 FROM users u
 JOIN user_details ud ON u.id = ud.user_id
 WHERE ud.email = $1;
@@ -19,7 +19,7 @@ WHERE ud.email = $1;
 -- name: CreateUser :one
 INSERT INTO users (
     firebase_uid,
-    role
+    user_name
 ) VALUES (
     $1,
     $2
@@ -27,17 +27,10 @@ INSERT INTO users (
 RETURNING *;
 
 -- name: GetUserByName :one
-SELECT u.*, ud.user_name, ud.email
+SELECT u.*, ud.email
 FROM users u
 JOIN user_details ud ON u.id = ud.user_id
-WHERE ud.user_name = $1;
-
--- name: UpdateUser :one
-UPDATE users SET
-    role = COALESCE($2, role),
-    updated_at = now()
-WHERE id = $1
-RETURNING *;
+WHERE u.user_name = $1;
 
 -- name: CheckUserExistsByEmail :one
 SELECT 1 FROM user_details WHERE email = $1 LIMIT 1;
@@ -62,7 +55,7 @@ WHERE e.paid_by = $1;
 SELECT 1 FROM users WHERE id = $1;
 
 -- name: GetUserWithDetails :one
-SELECT u.*, ud.user_name, ud.email
+SELECT u.*, ud.email
 FROM users u
 JOIN user_details ud ON ud.user_id = u.id
 WHERE u.id = $1;
@@ -72,6 +65,3 @@ INSERT INTO user_groups (user_id, group_id) VALUES ($1, $2);
 
 -- name: RemoveUserFromGroup :exec
 DELETE FROM user_groups WHERE user_id = $1 AND group_id = $2;
-
--- name: GetUsersByRole :many
-SELECT * FROM users WHERE role = $1;

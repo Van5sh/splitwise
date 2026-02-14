@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/Van5sh/new-splitwise/domain/models"
 	domain "github.com/Van5sh/new-splitwise/domain/repositories"
@@ -161,4 +162,27 @@ func (s *ExpenseServices) UpdateExpense(
 		CreatedAt:   expense.CreatedAt,
 		UpdatedAt:   expense.UpdatedAt,
 	}, nil
+}
+
+func (s *ExpenseServices) GetExpenseSplitsByExpenseID(ctx context.Context, expenseId string) ([]models.ExpenseSplit, error) {
+	splits, err := s.repo.GetExpenseSplitsByExpenseID(ctx, expenseId)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	result := make([]models.ExpenseSplit, len(splits))
+	for i, s := range splits {
+		result[i] = models.ExpenseSplit{
+			ID:        s.ID,
+			ExpenseID: s.ExpenseID,
+			UserID:    s.UserID,
+			PaidTo:    s.PaidTo,
+			Amount:    0,
+			CreatedAt: s.CreatedAt,
+			UpdatedAt: s.UpdatedAt,
+		}
+		if amt, err := strconv.ParseFloat(s.Amount, 64); err == nil {
+			result[i].Amount = amt
+		}
+	}
+	return result, nil
 }

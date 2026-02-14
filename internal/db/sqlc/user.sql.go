@@ -41,26 +41,26 @@ func (q *Queries) CheckUserExistsByEmail(ctx context.Context, email string) (int
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     firebase_uid,
-    role
+    user_name
 ) VALUES (
     $1,
     $2
 )
-RETURNING id, firebase_uid, role, created_at, updated_at
+RETURNING id, firebase_uid, user_name, created_at, updated_at
 `
 
 type CreateUserParams struct {
 	FirebaseUid string
-	Role        string
+	UserName    string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.FirebaseUid, arg.Role)
+	row := q.db.QueryRowContext(ctx, createUser, arg.FirebaseUid, arg.UserName)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -77,7 +77,7 @@ func (q *Queries) DeleteUserById(ctx context.Context, id uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT u.id, u.firebase_uid, u.role, u.created_at, u.updated_at, ud.user_name, ud.email
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at, ud.email
 FROM users u
 JOIN user_details ud ON u.id = ud.user_id
 WHERE ud.email = $1
@@ -86,10 +86,9 @@ WHERE ud.email = $1
 type GetUserByEmailRow struct {
 	ID          uuid.UUID
 	FirebaseUid string
-	Role        string
+	UserName    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	UserName    string
 	Email       string
 }
 
@@ -99,17 +98,16 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 	err := row.Scan(
 		&i.ID,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.UserName,
 		&i.Email,
 	)
 	return i, err
 }
 
 const getUserByFirebaseUid = `-- name: GetUserByFirebaseUid :one
-SELECT id, firebase_uid, role, created_at, updated_at FROM users WHERE firebase_uid = $1
+SELECT id, firebase_uid, user_name, created_at, updated_at FROM users WHERE firebase_uid = $1
 `
 
 func (q *Queries) GetUserByFirebaseUid(ctx context.Context, firebaseUid string) (User, error) {
@@ -118,7 +116,7 @@ func (q *Queries) GetUserByFirebaseUid(ctx context.Context, firebaseUid string) 
 	err := row.Scan(
 		&i.ID,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -126,7 +124,7 @@ func (q *Queries) GetUserByFirebaseUid(ctx context.Context, firebaseUid string) 
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, firebase_uid, role, created_at, updated_at FROM users WHERE id = $1
+SELECT id, firebase_uid, user_name, created_at, updated_at FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -135,7 +133,7 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -143,19 +141,18 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByName = `-- name: GetUserByName :one
-SELECT u.id, u.firebase_uid, u.role, u.created_at, u.updated_at, ud.user_name, ud.email
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at, ud.email
 FROM users u
 JOIN user_details ud ON u.id = ud.user_id
-WHERE ud.user_name = $1
+WHERE u.user_name = $1
 `
 
 type GetUserByNameRow struct {
 	ID          uuid.UUID
 	FirebaseUid string
-	Role        string
+	UserName    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	UserName    string
 	Email       string
 }
 
@@ -165,10 +162,9 @@ func (q *Queries) GetUserByName(ctx context.Context, userName string) (GetUserBy
 	err := row.Scan(
 		&i.ID,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.UserName,
 		&i.Email,
 	)
 	return i, err
@@ -298,7 +294,7 @@ func (q *Queries) GetUserSettlements(ctx context.Context, fromUserID uuid.UUID) 
 }
 
 const getUserWithDetails = `-- name: GetUserWithDetails :one
-SELECT u.id, u.firebase_uid, u.role, u.created_at, u.updated_at, ud.user_name, ud.email
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at, ud.email
 FROM users u
 JOIN user_details ud ON ud.user_id = u.id
 WHERE u.id = $1
@@ -307,10 +303,9 @@ WHERE u.id = $1
 type GetUserWithDetailsRow struct {
 	ID          uuid.UUID
 	FirebaseUid string
-	Role        string
+	UserName    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	UserName    string
 	Email       string
 }
 
@@ -320,17 +315,16 @@ func (q *Queries) GetUserWithDetails(ctx context.Context, id uuid.UUID) (GetUser
 	err := row.Scan(
 		&i.ID,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.UserName,
 		&i.Email,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, firebase_uid, role, created_at, updated_at FROM users
+SELECT id, firebase_uid, user_name, created_at, updated_at FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -345,40 +339,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirebaseUid,
-			&i.Role,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUsersByRole = `-- name: GetUsersByRole :many
-SELECT id, firebase_uid, role, created_at, updated_at FROM users WHERE role = $1
-`
-
-func (q *Queries) GetUsersByRole(ctx context.Context, role string) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getUsersByRole, role)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []User
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.ID,
-			&i.FirebaseUid,
-			&i.Role,
+			&i.UserName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -407,32 +368,6 @@ type RemoveUserFromGroupParams struct {
 func (q *Queries) RemoveUserFromGroup(ctx context.Context, arg RemoveUserFromGroupParams) error {
 	_, err := q.db.ExecContext(ctx, removeUserFromGroup, arg.UserID, arg.GroupID)
 	return err
-}
-
-const updateUser = `-- name: UpdateUser :one
-UPDATE users SET
-    role = COALESCE($2, role),
-    updated_at = now()
-WHERE id = $1
-RETURNING id, firebase_uid, role, created_at, updated_at
-`
-
-type UpdateUserParams struct {
-	ID   uuid.UUID
-	Role string
-}
-
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUser, arg.ID, arg.Role)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.FirebaseUid,
-		&i.Role,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
 }
 
 const validateUserExists = `-- name: ValidateUserExists :one

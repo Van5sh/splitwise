@@ -17,4 +17,5 @@ type ExpenseRepository interface {
 	DeleteExpense(ctx context.Context, id string) error
 	ValidateExpenseExists(ctx context.Context, id string) (bool, error)
 	UpdateExpense(ctx context.Context, id, description string, amount int, splits []models.ExpenseSplitInput) (sqlc.Expense, error)
+	GetExpenseSplitsByExpenseID(ctx context.Context, expenseId string) ([]sqlc.ExpenseSplit, error)
 }

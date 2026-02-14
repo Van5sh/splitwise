@@ -71,16 +71,15 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 
 	userName := getString("user_name", "UserName", "username", "userName")
 	firebaseID := getString("firebase_id", "FirebaseID", "firebaseId")
-	role := getString("role", "Role")
 	email := getString("email", "Email")
 
-	if userName == "" || firebaseID == "" || role == "" || email == "" {
+	if userName == "" || firebaseID == "" || email == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "user_name/UserName, firebase_id/FirebaseID, role and email are required",
+			"error": "user_name/UserName, firebase_id/FirebaseID, and email are required",
 		})
 	}
 
-	res, err := h.services.CreateUser(c.Context(), userName, firebaseID, role, email)
+	res, err := h.services.CreateUser(c.Context(), userName, firebaseID, email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -115,29 +114,6 @@ func (h *UserHandler) GetUserByFirebaseID(c *fiber.Ctx) error {
 		fiber.Map{
 			"status": "success",
 			"data":   user,
-			"code":   fiber.StatusOK,
-		},
-	)
-}
-
-func (h *UserHandler) UpdateUserRole(c *fiber.Ctx) error {
-	userId := c.Params("id")
-	role := c.Params("role")
-	if userId == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "User ID is required",
-		})
-	}
-	res, err := h.services.UpdateUserRole(c.Context(), userId, role)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(
-		fiber.Map{
-			"status": "success",
-			"data":   res,
 			"code":   fiber.StatusOK,
 		},
 	)

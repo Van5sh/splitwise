@@ -20,6 +20,5 @@ func (r *UserRouter) RegisterUserRoutes(app *fiber.App) {
 	user.Get("/user/:id", r.handler.GetUserId)
 	user.Get("/user/firebase/:firebase_id", r.handler.GetUserByFirebaseID)
 	user.Post("/user", r.handler.CreateUser)
-	user.Patch("/user/:id/role/:role", r.handler.UpdateUserRole)
 	user.Delete("/user/:id", r.handler.DeleteUser)
 }

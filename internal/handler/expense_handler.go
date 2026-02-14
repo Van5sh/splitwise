@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Van5sh/new-splitwise/domain/models"
 	"github.com/Van5sh/new-splitwise/internal/helpers"
 	"github.com/Van5sh/new-splitwise/internal/services"
 	"github.com/gofiber/fiber/v2"
@@ -34,7 +33,11 @@ func (h *ExpenseHandler) GetExpenseByID(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(expense)
+	splits, err := h.services.GetExpenseSplitsByExpenseID(c.Context(), id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"expense": expense, "splits": splits})
 }
 
 func (h *ExpenseHandler) GetExpenseByGroupID(c *fiber.Ctx) error {
@@ -64,17 +67,13 @@ func (h *ExpenseHandler) CreateExpense(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid amount"})
 	}
-	splits, err := getSplitInputs(payload)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
 	if paidBy == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "paid_by is required"})
 	}
 	if _, err := helpers.ValidateID(paidBy); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid paid_by user id"})
 	}
-	expense, err := h.services.CreateExpense(c.Context(), groupId, paidBy, description, amount, splits)
+	expense, err := h.services.CreateExpense(c.Context(), groupId, paidBy, description, amount, nil)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -144,40 +143,6 @@ func getIntField(payload map[string]interface{}, keys ...string) (int, error) {
 	return 0, fmt.Errorf("missing number")
 }
 
-func getSplitInputs(payload map[string]interface{}) ([]models.ExpenseSplitInput, error) {
-	raw, ok := payload["splits"]
-	if !ok {
-		raw, ok = payload["Splits"]
-	}
-	if !ok || raw == nil {
-		return nil, nil
-	}
-	items, ok := raw.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("splits must be an array")
-	}
-	splits := make([]models.ExpenseSplitInput, 0, len(items))
-	for _, item := range items {
-		entry, ok := item.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("split entries must be objects")
-		}
-		userID := getStringField(entry, "user_id", "userId")
-		if userID == "" {
-			return nil, fmt.Errorf("split user_id is required")
-		}
-		amount, err := getIntField(entry, "amount", "Amount")
-		if err != nil {
-			return nil, fmt.Errorf("split amount is invalid")
-		}
-		splits = append(splits, models.ExpenseSplitInput{
-			UserID: userID,
-			Amount: amount,
-		})
-	}
-	return splits, nil
-}
-
 func (h *ExpenseHandler) DeleteExpenseByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	uid, err := helpers.ValidateID(id)
@@ -206,15 +171,11 @@ func (h *ExpenseHandler) UpdateExpense(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid amount"})
 	}
-	splits, err := getSplitInputs(payload)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	expense, err := h.services.UpdateExpense(c.Context(), uid.String(), description, amount, splits)
+	updatedExpense, err := h.services.UpdateExpense(c.Context(), uid.String(), description, amount, nil)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Expense updated successfully", "expense": expense})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Expense updated successfully", "expense": updatedExpense})
 }
 
 func (h *ExpenseHandler) ValidateExpenseExists(c *fiber.Ctx) error {

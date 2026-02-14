@@ -13,24 +13,22 @@ import (
 )
 
 const createUserDetails = `-- name: CreateUserDetails :one
-INSERT INTO user_details (user_id, user_name, email)
-VALUES ($1, $2, $3)
-RETURNING id, user_id, user_name, email, created_at, updated_at
+INSERT INTO user_details (user_id, email)
+VALUES ($1, $2)
+RETURNING id, user_id, email, created_at, updated_at
 `
 
 type CreateUserDetailsParams struct {
-	UserID   uuid.UUID
-	UserName string
-	Email    string
+	UserID uuid.UUID
+	Email  string
 }
 
 func (q *Queries) CreateUserDetails(ctx context.Context, arg CreateUserDetailsParams) (UserDetail, error) {
-	row := q.db.QueryRowContext(ctx, createUserDetails, arg.UserID, arg.UserName, arg.Email)
+	row := q.db.QueryRowContext(ctx, createUserDetails, arg.UserID, arg.Email)
 	var i UserDetail
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.UserName,
 		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -39,7 +37,7 @@ func (q *Queries) CreateUserDetails(ctx context.Context, arg CreateUserDetailsPa
 }
 
 const getUserDetailsByEmail = `-- name: GetUserDetailsByEmail :one
-SELECT id, user_id, user_name, email, created_at, updated_at
+SELECT id, user_id, email, created_at, updated_at
 FROM user_details
 WHERE email = $1
 `
@@ -50,7 +48,6 @@ func (q *Queries) GetUserDetailsByEmail(ctx context.Context, email string) (User
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.UserName,
 		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -59,7 +56,16 @@ func (q *Queries) GetUserDetailsByEmail(ctx context.Context, email string) (User
 }
 
 const getUserDetailsByUserId = `-- name: GetUserDetailsByUserId :one
-SELECT user_details.id, user_id, user_name, email, user_details.created_at, user_details.updated_at, users.id, firebase_uid, role, users.created_at, users.updated_at
+SELECT user_details.id,
+       user_details.user_id,
+       user_details.email,
+       user_details.created_at,
+       user_details.updated_at,
+       users.id,
+       users.firebase_uid,
+       users.user_name,
+       users.created_at,
+       users.updated_at
 FROM user_details
 JOIN users ON user_details.user_id = users.id
 WHERE user_details.user_id = $1
@@ -68,13 +74,12 @@ WHERE user_details.user_id = $1
 type GetUserDetailsByUserIdRow struct {
 	ID          uuid.UUID
 	UserID      uuid.UUID
-	UserName    string
 	Email       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	ID_2        uuid.UUID
 	FirebaseUid string
-	Role        string
+	UserName    string
 	CreatedAt_2 time.Time
 	UpdatedAt_2 time.Time
 }
@@ -85,13 +90,12 @@ func (q *Queries) GetUserDetailsByUserId(ctx context.Context, userID uuid.UUID) 
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.UserName,
 		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ID_2,
 		&i.FirebaseUid,
-		&i.Role,
+		&i.UserName,
 		&i.CreatedAt_2,
 		&i.UpdatedAt_2,
 	)
@@ -100,27 +104,50 @@ func (q *Queries) GetUserDetailsByUserId(ctx context.Context, userID uuid.UUID) 
 
 const updateUserDetails = `-- name: UpdateUserDetails :one
 UPDATE user_details
-SET user_name = COALESCE($2, user_name),
-    email = COALESCE($3, email),
+SET email = COALESCE($2, email),
     updated_at = now()
 WHERE user_id = $1
-RETURNING id, user_id, user_name, email, created_at, updated_at
+RETURNING id, user_id, email, created_at, updated_at
 `
 
 type UpdateUserDetailsParams struct {
-	UserID   uuid.UUID
-	UserName string
-	Email    string
+	UserID uuid.UUID
+	Email  string
 }
 
 func (q *Queries) UpdateUserDetails(ctx context.Context, arg UpdateUserDetailsParams) (UserDetail, error) {
-	row := q.db.QueryRowContext(ctx, updateUserDetails, arg.UserID, arg.UserName, arg.Email)
+	row := q.db.QueryRowContext(ctx, updateUserDetails, arg.UserID, arg.Email)
 	var i UserDetail
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.UserName,
 		&i.Email,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateUserName = `-- name: UpdateUserName :one
+UPDATE users
+SET user_name = COALESCE($2, user_name),
+    updated_at = now()
+WHERE id = $1
+RETURNING id, firebase_uid, user_name, created_at, updated_at
+`
+
+type UpdateUserNameParams struct {
+	ID       uuid.UUID
+	UserName string
+}
+
+func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserName, arg.ID, arg.UserName)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirebaseUid,
+		&i.UserName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

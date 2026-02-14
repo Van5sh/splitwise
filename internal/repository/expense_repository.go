@@ -101,29 +101,31 @@ func (r *ExpenseRepository) CreateExpense(
 		return sqlc.Expense{}, err
 	}
 
-	if len(splits) == 0 {
-		members, err := qtx.GetGroupMembers(ctx, groupUUID)
-		if err != nil {
-			return sqlc.Expense{}, err
-		}
-		if len(members) == 0 {
-			return sqlc.Expense{}, fmt.Errorf("group has no members")
-		}
-		splits = buildEqualSplits(members, amount)
-	} else {
-		sum := 0
-		for _, s := range splits {
-			sum += s.Amount
-		}
-		if sum != amount {
-			return sqlc.Expense{}, fmt.Errorf("split total does not match expense amount")
-		}
+	members, err := qtx.GetGroupMembers(ctx, groupUUID)
+	if err != nil {
+		return sqlc.Expense{}, err
 	}
+	if len(members) == 0 {
+		return sqlc.Expense{}, fmt.Errorf("group has no members")
+	}
+	splits = buildEqualSplits(members, amount, userUUID.String())
 
 	for _, split := range splits {
 		splitUserID, err := uuid.Parse(split.UserID)
 		if err != nil {
 			return sqlc.Expense{}, err
+		}
+		paidToID := userUUID
+		if split.PaidTo != "" {
+			paidToID, err = uuid.Parse(split.PaidTo)
+			if err != nil {
+				return sqlc.Expense{}, err
+			}
+			if ok, err := isUserInGroup(ctx, qtx, paidToID, groupUUID); err != nil {
+				return sqlc.Expense{}, err
+			} else if !ok {
+				return sqlc.Expense{}, fmt.Errorf("paid_to user is not in group")
+			}
 		}
 		if ok, err := isUserInGroup(ctx, qtx, splitUserID, groupUUID); err != nil {
 			return sqlc.Expense{}, err
@@ -133,6 +135,7 @@ func (r *ExpenseRepository) CreateExpense(
 		_, err = qtx.AddExpenseSplits(ctx, sqlc.AddExpenseSplitsParams{
 			ExpenseID: expense.ID,
 			UserID:    splitUserID,
+			PaidTo:    paidToID,
 			Amount:    strconv.Itoa(split.Amount),
 		})
 		if err != nil {
@@ -215,6 +218,7 @@ func (r *ExpenseRepository) CreateIndividualExpense(
 	_, err = qtx.AddExpenseSplits(ctx, sqlc.AddExpenseSplitsParams{
 		ExpenseID: expense.ID,
 		UserID:    toUUID,
+		PaidTo:    fromUUID,
 		Amount:    strconv.Itoa(amount),
 	})
 	if err != nil {
@@ -223,6 +227,7 @@ func (r *ExpenseRepository) CreateIndividualExpense(
 	_, err = qtx.AddExpenseSplits(ctx, sqlc.AddExpenseSplitsParams{
 		ExpenseID: expense.ID,
 		UserID:    fromUUID,
+		PaidTo:    fromUUID,
 		Amount:    "0",
 	})
 	if err != nil {
@@ -235,7 +240,7 @@ func (r *ExpenseRepository) CreateIndividualExpense(
 	return expense, nil
 }
 
-func buildEqualSplits(members []sqlc.User, amount int) []models.ExpenseSplitInput {
+func buildEqualSplits(members []sqlc.User, amount int, paidTo string) []models.ExpenseSplitInput {
 	splits := make([]models.ExpenseSplitInput, 0, len(members))
 	if len(members) == 0 {
 		return splits
@@ -249,6 +254,7 @@ func buildEqualSplits(members []sqlc.User, amount int) []models.ExpenseSplitInpu
 		}
 		splits = append(splits, models.ExpenseSplitInput{
 			UserID: member.ID.String(),
+			PaidTo: paidTo,
 			Amount: splitAmount,
 		})
 	}
@@ -384,38 +390,30 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 		}
 	}
 
-	var updatedSplits []sqlc.AddExpenseSplitsParams
-	if len(splits) == 0 {
-		existing, err := qtx.GetSplitsByExpenseId(ctx, expenseId)
+	members, err := qtx.GetGroupMembers(ctx, current.GroupID)
+	if err != nil {
+		return sqlc.Expense{}, err
+	}
+	if len(members) == 0 {
+		return sqlc.Expense{}, fmt.Errorf("group has no members")
+	}
+	equalSplits := buildEqualSplits(members, amount, current.PaidBy.String())
+	updatedSplits := make([]sqlc.AddExpenseSplitsParams, 0, len(equalSplits))
+	for _, s := range equalSplits {
+		splitUserID, err := uuid.Parse(s.UserID)
 		if err != nil {
 			return sqlc.Expense{}, err
 		}
-		updatedSplits = recomputeSplitsFromExisting(existing, amount)
-	} else {
-		sum := 0
-		for _, s := range splits {
-			sum += s.Amount
+		paidToID, err := uuid.Parse(s.PaidTo)
+		if err != nil {
+			return sqlc.Expense{}, err
 		}
-		if sum != amount {
-			return sqlc.Expense{}, fmt.Errorf("split total does not match expense amount")
-		}
-		updatedSplits = make([]sqlc.AddExpenseSplitsParams, 0, len(splits))
-		for _, s := range splits {
-			splitUserID, err := uuid.Parse(s.UserID)
-			if err != nil {
-				return sqlc.Expense{}, err
-			}
-			if ok, err := isUserInGroup(ctx, qtx, splitUserID, current.GroupID); err != nil {
-				return sqlc.Expense{}, err
-			} else if !ok {
-				return sqlc.Expense{}, fmt.Errorf("split user is not in group")
-			}
-			updatedSplits = append(updatedSplits, sqlc.AddExpenseSplitsParams{
-				ExpenseID: expenseId,
-				UserID:    splitUserID,
-				Amount:    strconv.Itoa(s.Amount),
-			})
-		}
+		updatedSplits = append(updatedSplits, sqlc.AddExpenseSplitsParams{
+			ExpenseID: expenseId,
+			UserID:    splitUserID,
+			PaidTo:    paidToID,
+			Amount:    strconv.Itoa(s.Amount),
+		})
 	}
 	if err = qtx.DeleteSplitsByExpenseId(ctx, expenseId); err != nil {
 		return sqlc.Expense{}, err
@@ -424,6 +422,7 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 		_, err = qtx.AddExpenseSplits(ctx, sqlc.AddExpenseSplitsParams{
 			ExpenseID: expenseId,
 			UserID:    split.UserID,
+			PaidTo:    split.PaidTo,
 			Amount:    split.Amount,
 		})
 		if err != nil {
@@ -438,7 +437,7 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 }
 
 func (r *ExpenseRepository) AddExpenseSplits(
-	ctx context.Context, expenseId string, userId string, amount int) (sqlc.ExpenseSplit, error) {
+	ctx context.Context, expenseId string, userId string, paidTo string, amount int) (sqlc.ExpenseSplit, error) {
 	eId, err := uuid.Parse(expenseId)
 	if err != nil {
 		return sqlc.ExpenseSplit{}, err
@@ -447,10 +446,15 @@ func (r *ExpenseRepository) AddExpenseSplits(
 	if err != nil {
 		return sqlc.ExpenseSplit{}, err
 	}
+	pId, err := uuid.Parse(paidTo)
+	if err != nil {
+		return sqlc.ExpenseSplit{}, err
+	}
 
 	return r.q.AddExpenseSplits(ctx, sqlc.AddExpenseSplitsParams{
 		ExpenseID: eId,
 		UserID:    uId,
+		PaidTo:    pId,
 		Amount:    strconv.Itoa(amount),
 	})
 }
@@ -497,6 +501,7 @@ func recomputeSplitsFromExisting(splits []sqlc.ExpenseSplit, newTotal int) []sql
 			result = append(result, sqlc.AddExpenseSplitsParams{
 				ExpenseID: s.ExpenseID,
 				UserID:    s.UserID,
+				PaidTo:    s.PaidTo,
 				Amount:    strconv.Itoa(amt),
 			})
 		}
@@ -510,6 +515,7 @@ func recomputeSplitsFromExisting(splits []sqlc.ExpenseSplit, newTotal int) []sql
 		result = append(result, sqlc.AddExpenseSplitsParams{
 			ExpenseID: s.ExpenseID,
 			UserID:    s.UserID,
+			PaidTo:    s.PaidTo,
 			Amount:    strconv.Itoa(amt),
 		})
 	}

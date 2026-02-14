@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"encoding/json"
+
+	"github.com/Van5sh/new-splitwise/internal/helpers"
 	"github.com/Van5sh/new-splitwise/internal/services"
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,17 +26,39 @@ func (h *SettlementHandler) GetSettlementById(c *fiber.Ctx) error {
 }
 
 func (h *SettlementHandler) AddSettlement(c *fiber.Ctx) error {
-	type request struct {
-		GroupID    string `json:"group_id"`
-		FromUserID string `json:"from_user_id"`
-		ToUserID   string `json:"to_user_id"`
-		Amount     string `json:"amount"`
-	}
-	var body request
-	if err := c.BodyParser(&body); err != nil {
+	var payload map[string]interface{}
+	if err := json.Unmarshal(c.Body(), &payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-	settlement, err := h.services.AddSettlement(c.Context(), body.GroupID, body.FromUserID, body.ToUserID, body.Amount)
+
+	groupID := getStringField(payload, "group_id", "groupId")
+	fromUserID := getStringField(payload, "from_user_id", "fromUserId", "paid_by", "paidBy")
+	toUserID := getStringField(payload, "to_user_id", "toUserId", "paid_to", "paidTo")
+	amount, err := getIntField(payload, "amount", "Amount")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid amount"})
+	}
+
+	if groupID == "" || fromUserID == "" || toUserID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "group_id, from_user_id and to_user_id are required"})
+	}
+	if fromUserID == toUserID {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "from_user_id and to_user_id must be different"})
+	}
+	if amount <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "amount must be greater than 0"})
+	}
+	if _, err := helpers.ValidateID(groupID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid group id"})
+	}
+	if _, err := helpers.ValidateID(fromUserID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid from_user_id"})
+	}
+	if _, err := helpers.ValidateID(toUserID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid to_user_id"})
+	}
+
+	settlement, err := h.services.AddSettlement(c.Context(), groupID, fromUserID, toUserID, amount)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

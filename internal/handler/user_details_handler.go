@@ -57,13 +57,12 @@ func (h *UserDetailsHandler) GetUserDetailsByEmail(c *fiber.Ctx) error {
 
 func (h *UserDetailsHandler) UpdateUserDetails(c *fiber.Ctx) error {
 	userId := c.FormValue("id")
-	name := c.FormValue("name")
 	email := c.FormValue("email")
 	uid, err := helpers.ValidateID(userId)
 	if err != nil {
 		return helpers.ValidationError("Wrong Input", nil, &fiber.Error{})
 	}
-	user, err := h.services.UpdateUserDetails(c.Context(), uid.String(), name, email)
+	user, err := h.services.UpdateUserDetails(c.Context(), uid.String(), email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
 			"Error updating user details",

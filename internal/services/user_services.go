@@ -24,8 +24,8 @@ func (s *UserServices) GetUsers(ctx context.Context) ([]models.User, error) {
 	for i, u := range dbUsers {
 		users[i] = models.User{
 			ID:         u.ID,
-			Role:       u.Role,
 			FirebaseID: u.FirebaseUid,
+			UserName:   u.UserName,
 			CreatedAt:  u.CreatedAt,
 			UpdatedAt:  u.UpdatedAt,
 		}
@@ -40,25 +40,25 @@ func (s *UserServices) GetUserByID(ctx context.Context, id string) (models.User,
 	}
 	return models.User{
 		ID:         user.ID,
-		Role:       user.Role,
 		FirebaseID: user.FirebaseUid,
+		UserName:   user.UserName,
 		CreatedAt:  user.CreatedAt,
 		UpdatedAt:  user.UpdatedAt,
 	}, nil
 }
 
-func (s *UserServices) CreateUser(ctx context.Context, userName string, FirebaseID string, role string, email string) (models.User, error) {
+func (s *UserServices) CreateUser(ctx context.Context, userName string, FirebaseID string, email string) (models.User, error) {
 	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
 		return models.User{}, err
 	}
 	repo := s.repo.WithTx(tx)
-	newUser, err := repo.CreateUser(ctx, FirebaseID, role)
+	newUser, err := repo.CreateUser(ctx, FirebaseID, userName)
 	if err != nil {
 		tx.Rollback()
 		return models.User{}, err
 	}
-	_, err = repo.CreateUserDetails(ctx, newUser.ID.String(), userName, email)
+	_, err = repo.CreateUserDetails(ctx, newUser.ID.String(), email)
 	if err != nil {
 		tx.Rollback()
 		return models.User{}, err
@@ -68,8 +68,8 @@ func (s *UserServices) CreateUser(ctx context.Context, userName string, Firebase
 	}
 	return models.User{
 		ID:         newUser.ID,
-		Role:       newUser.Role,
 		FirebaseID: newUser.FirebaseUid,
+		UserName:   newUser.UserName,
 		CreatedAt:  newUser.CreatedAt,
 		UpdatedAt:  newUser.UpdatedAt,
 	}, nil
@@ -82,28 +82,10 @@ func (s *UserServices) GetUserByFirebaseID(ctx context.Context, firebaseID strin
 	}
 	return models.User{
 		ID:         user.ID,
-		Role:       user.Role,
 		FirebaseID: user.FirebaseUid,
+		UserName:   user.UserName,
 		CreatedAt:  user.CreatedAt,
 		UpdatedAt:  user.UpdatedAt,
-	}, nil
-}
-
-func (r *UserServices) UpdateUserRole(ctx context.Context, id string, role string) (models.User, error) {
-	_, err := r.repo.ValidateUserExists(ctx, id)
-	if err != nil {
-		return models.User{}, err
-	}
-	res, err := r.repo.UpdateUserRole(ctx, id, role)
-	if err != nil {
-		return models.User{}, err
-	}
-	return models.User{
-		ID:         res.ID,
-		Role:       res.Role,
-		FirebaseID: res.FirebaseUid,
-		CreatedAt:  res.CreatedAt,
-		UpdatedAt:  res.UpdatedAt,
 	}, nil
 }
 

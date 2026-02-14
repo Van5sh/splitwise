@@ -56,14 +56,14 @@ RETURNING *;
 
 
 -- name: GetGroupMembers :many
-SELECT u.*
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at
 FROM users u
 JOIN user_groups ug ON u.id = ug.user_id
 WHERE ug.group_id = $1;
 
 
 -- name: GetGroupAdmins :many
-SELECT u.*
+SELECT u.id, u.firebase_uid, u.user_name, u.created_at, u.updated_at
 FROM users u
 JOIN user_groups ug ON u.id = ug.user_id
 WHERE ug.group_id = $1

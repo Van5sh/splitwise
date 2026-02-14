@@ -28,26 +28,25 @@ func (r *UserDetailsRepository) GetUserDetailsByEmail(ctx context.Context, email
 	return r.q.GetUserDetailsByEmail(ctx, email)
 }
 
-func (r *UserDetailsRepository) CreateUserDetails(ctx context.Context, userID string, name string, email string) (sqlc.UserDetail, error) {
+func (r *UserDetailsRepository) CreateUserDetails(ctx context.Context, userID string, email string) (sqlc.UserDetail, error) {
 	uid, err := uuid.Parse(userID)
 	if err != nil {
 		return sqlc.UserDetail{}, err
 	}
 	return r.q.CreateUserDetails(ctx, sqlc.CreateUserDetailsParams{
-		UserID:   uid,
-		UserName: name,
-		Email:    email,
+		UserID: uid,
+		Email:  email,
 	})
 }
 
-func (r *UserDetailsRepository) UpdateUserDetails(ctx context.Context, id, UserName string, email string) (sqlc.UserDetail, error) {
-	_, err := uuid.Parse(id)
+func (r *UserDetailsRepository) UpdateUserDetails(ctx context.Context, id, email string) (sqlc.UserDetail, error) {
+	uid, err := uuid.Parse(id)
 	if err != nil {
 		return sqlc.UserDetail{}, err
 	}
 	return r.q.UpdateUserDetails(ctx, sqlc.UpdateUserDetailsParams{
-		UserName: UserName,
-		Email:    email,
+		UserID: uid,
+		Email:  email,
 	})
 }
 

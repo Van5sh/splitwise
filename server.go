@@ -33,7 +33,7 @@ func startServer(dbConn *sql.DB) {
 	userService := services.NewUsersServices(userRepo)
 	userDetailsService := services.NewUserDetailsService(userDetailsRepo)
 	userGroupService := services.NewUserGroupService(userGroupRepo)
-	settlementService := services.NewSettlementService(settlementRepo)
+	settlementService := services.NewSettlementService(settlementRepo, expenseRepo)
 	expenseService := services.NewExpenseServices(expenseRepo)
 	groupService := services.NewGroupServices(groupRepo)
 	balanceService := services.NewBalanceService(balanceRepo)

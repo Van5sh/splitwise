@@ -159,8 +159,8 @@ func (s *GroupServices) GetGroupMembers(ctx context.Context, groupId string) ([]
 	for i, u := range members {
 		users[i] = models.User{
 			ID:         u.ID,
-			Role:       u.Role,
 			FirebaseID: u.FirebaseUid,
+			UserName:   u.UserName,
 			CreatedAt:  u.CreatedAt,
 			UpdatedAt:  u.UpdatedAt,
 		}
@@ -177,8 +177,8 @@ func (s *GroupServices) GetGroupAdmins(ctx context.Context, groupId string) ([]m
 	for i, u := range admins {
 		users[i] = models.User{
 			ID:         u.ID,
-			Role:       u.Role,
 			FirebaseID: u.FirebaseUid,
+			UserName:   u.UserName,
 			CreatedAt:  u.CreatedAt,
 			UpdatedAt:  u.UpdatedAt,
 		}

@@ -10,6 +10,8 @@ sql:
       - "./internal/db/migrations/006_migrations_settlements_up.sql"
       - "./internal/db/migrations/007_migrations_usergroup_up.sql"
       - "./internal/db/migrations/008_migrations_friends.sql"
+      - "./internal/db/migrations/010_add_paid_to_expense_splits.sql"
+      - "./internal/db/migrations/011_users_add_user_name_drop_role.sql"
     queries: "./internal/db/queries"
     gen:
       go:

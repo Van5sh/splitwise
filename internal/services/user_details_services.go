@@ -29,7 +29,6 @@ func (s *UserDetailsService) GetUserDetailsByUserID(ctx context.Context, id stri
 	return models.UserDetails{
 		ID:        res.ID,
 		User_ID:   res.UserID,
-		User_Name: res.UserName,
 		Email:     res.Email,
 		CreatedAt: res.CreatedAt,
 		UpdatedAt: res.UpdatedAt,
@@ -47,7 +46,6 @@ func (s *UserDetailsService) GetUserDetailsByEmail(ctx context.Context, email st
 	return models.UserDetails{
 		ID:        res.ID,
 		User_ID:   res.UserID,
-		User_Name: res.UserName,
 		Email:     res.Email,
 		CreatedAt: res.CreatedAt,
 		UpdatedAt: res.UpdatedAt,
@@ -62,19 +60,18 @@ func (s *UserDetailsService) CheckUserIsGroupAdmin(ctx context.Context, userId, 
 	return s.repo.CheckUserIsGroupAdmin(ctx, userId, groupId)
 }
 
-func (s *UserDetailsService) UpdateUserDetails(ctx context.Context, id, name string, email string) (models.UserDetails, error) {
+func (s *UserDetailsService) UpdateUserDetails(ctx context.Context, id string, email string) (models.UserDetails, error) {
 	_, err := s.repo.GetUserDetailsByUserID(ctx, id)
 	if err != nil {
 		return models.UserDetails{}, err
 	}
-	res, err := s.repo.UpdateUserDetails(ctx, id, name, email)
+	res, err := s.repo.UpdateUserDetails(ctx, id, email)
 	if err != nil {
 		return models.UserDetails{}, err
 	}
 	return models.UserDetails{
-		ID:        res.ID,
-		User_ID:   res.UserID,
-		User_Name: res.UserName,
-		Email:     res.Email,
+		ID:      res.ID,
+		User_ID: res.UserID,
+		Email:   res.Email,
 	}, nil
 }

@@ -15,23 +15,31 @@ const addExpenseSplits = `-- name: AddExpenseSplits :one
 INSERT INTO expense_splits (
     expense_id,
     user_id,
-    amount
+    amount,
+    paid_to
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
-RETURNING id, expense_id, user_id, amount, created_at, updated_at
+RETURNING id, expense_id, user_id, amount, created_at, updated_at, paid_to
 `
 
 type AddExpenseSplitsParams struct {
 	ExpenseID uuid.UUID
 	UserID    uuid.UUID
 	Amount    string
+	PaidTo    uuid.UUID
 }
 
 func (q *Queries) AddExpenseSplits(ctx context.Context, arg AddExpenseSplitsParams) (ExpenseSplit, error) {
-	row := q.db.QueryRowContext(ctx, addExpenseSplits, arg.ExpenseID, arg.UserID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, addExpenseSplits,
+		arg.ExpenseID,
+		arg.UserID,
+		arg.Amount,
+		arg.PaidTo,
+	)
 	var i ExpenseSplit
 	err := row.Scan(
 		&i.ID,
@@ -40,6 +48,7 @@ func (q *Queries) AddExpenseSplits(ctx context.Context, arg AddExpenseSplitsPara
 		&i.Amount,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidTo,
 	)
 	return i, err
 }
@@ -55,7 +64,7 @@ func (q *Queries) DeleteSplitsByExpenseId(ctx context.Context, expenseID uuid.UU
 }
 
 const getSplitsByExpenseId = `-- name: GetSplitsByExpenseId :many
-SELECT id, expense_id, user_id, amount, created_at, updated_at FROM expense_splits 
+SELECT id, expense_id, user_id, amount, created_at, updated_at, paid_to FROM expense_splits 
 WHERE expense_id = $1
 `
 
@@ -75,6 +84,7 @@ func (q *Queries) GetSplitsByExpenseId(ctx context.Context, expenseID uuid.UUID)
 			&i.Amount,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PaidTo,
 		); err != nil {
 			return nil, err
 		}
@@ -90,7 +100,7 @@ func (q *Queries) GetSplitsByExpenseId(ctx context.Context, expenseID uuid.UUID)
 }
 
 const getSplitsByUserId = `-- name: GetSplitsByUserId :many
-SELECT id, expense_id, user_id, amount, created_at, updated_at FROM expense_splits 
+SELECT id, expense_id, user_id, amount, created_at, updated_at, paid_to FROM expense_splits 
 WHERE user_id = $1
 `
 
@@ -110,6 +120,7 @@ func (q *Queries) GetSplitsByUserId(ctx context.Context, userID uuid.UUID) ([]Ex
 			&i.Amount,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PaidTo,
 		); err != nil {
 			return nil, err
 		}

@@ -2,17 +2,22 @@ package services
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/Van5sh/new-splitwise/domain/models"
 	domain "github.com/Van5sh/new-splitwise/domain/repositories"
 )
 
 type SettlementService struct {
-	repo domain.SettlementRepository
+	repo        domain.SettlementRepository
+	expenseRepo domain.ExpenseRepository
 }
 
-func NewSettlementService(repo domain.SettlementRepository) *SettlementService {
-	return &SettlementService{repo: repo}
+func NewSettlementService(repo domain.SettlementRepository, expenseRepo domain.ExpenseRepository) *SettlementService {
+	return &SettlementService{
+		repo:        repo,
+		expenseRepo: expenseRepo,
+	}
 }
 
 func (s *SettlementService) GetSettlementById(ctx context.Context, id string) (models.Settlement, error) {
@@ -31,12 +36,22 @@ func (s *SettlementService) GetSettlementById(ctx context.Context, id string) (m
 	}, nil
 }
 
-func (s *SettlementService) AddSettlement(ctx context.Context, groupId, fromUserId, toUserId, amount string) (models.Settlement, error) {
+func (s *SettlementService) AddSettlement(ctx context.Context, groupId, fromUserId, toUserId string, amount int) (models.Settlement, error) {
 	_, err := s.repo.ValidateUsersInSameGroup(ctx, fromUserId, toUserId, groupId)
 	if err != nil {
 		return models.Settlement{}, err
 	}
-	res, err := s.repo.AddSettlement(ctx, groupId, fromUserId, toUserId, amount)
+
+	splits := []models.ExpenseSplitInput{
+		{UserID: toUserId, PaidTo: toUserId, Amount: amount},
+		{UserID: fromUserId, PaidTo: toUserId, Amount: 0},
+	}
+	_, err = s.expenseRepo.CreateExpense(ctx, groupId, fromUserId, "Settlement", amount, splits)
+	if err != nil {
+		return models.Settlement{}, err
+	}
+
+	res, err := s.repo.AddSettlement(ctx, groupId, fromUserId, toUserId, strconv.Itoa(amount))
 	if err != nil {
 		return models.Settlement{}, err
 	}

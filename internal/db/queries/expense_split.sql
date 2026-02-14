@@ -2,11 +2,13 @@
 INSERT INTO expense_splits (
     expense_id,
     user_id,
-    amount
+    amount,
+    paid_to
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 RETURNING *;
 
