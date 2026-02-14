@@ -7,7 +7,7 @@ import (
 )
 
 type UserDetailsRepository interface {
-	GetUserDetailsByUserID(ctx context.Context, id string) (sqlc.UserDetail, error)
+	GetUserDetailsByUserID(ctx context.Context, id string) (sqlc.GetUserDetailsByUserIdRow, error)
 	GetUserDetailsByEmail(ctx context.Context, email string) (sqlc.UserDetail, error)
 	UpdateUserDetails(ctx context.Context, id, name string, email string) (sqlc.UserDetail, error)
 	CheckUserInGroup(ctx context.Context, userId, groupId string) (int32, error)

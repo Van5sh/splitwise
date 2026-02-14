@@ -20,7 +20,6 @@ func startServer(dbConn *sql.DB) {
 	app.Use(middleware.ErrorResponseMiddleware())
 	// TODO: Add CORS middleware
 	// TODO: Add authentication middleware
-	// app.User(middleware.Cors)
 
 	queries := sqlc.New(dbConn)
 	userRepo := repository.NewUserRepository(dbConn, queries)
