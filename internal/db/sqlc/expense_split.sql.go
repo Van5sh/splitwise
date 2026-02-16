@@ -63,6 +63,22 @@ func (q *Queries) DeleteSplitsByExpenseId(ctx context.Context, expenseID uuid.UU
 	return err
 }
 
+const deleteSplitsByPaidBy = `-- name: DeleteSplitsByPaidBy :exec
+DELETE FROM expense_splits
+WHERE expense_id = $1
+  AND (user_id = $2 OR paid_to = $2)
+`
+
+type DeleteSplitsByPaidByParams struct {
+	ExpenseID uuid.UUID
+	UserID    uuid.UUID
+}
+
+func (q *Queries) DeleteSplitsByPaidBy(ctx context.Context, arg DeleteSplitsByPaidByParams) error {
+	_, err := q.db.ExecContext(ctx, deleteSplitsByPaidBy, arg.ExpenseID, arg.UserID)
+	return err
+}
+
 const getSplitsByExpenseId = `-- name: GetSplitsByExpenseId :many
 SELECT id, expense_id, user_id, amount, created_at, updated_at, paid_to FROM expense_splits 
 WHERE expense_id = $1

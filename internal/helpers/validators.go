@@ -76,43 +76,6 @@ func ValidateUserExists(
 	return nil
 }
 
-func ValidateUsersInSameGroup(
-	ctx context.Context,
-	q *sqlc.Queries,
-	user1, user2, groupId string,
-) error {
-
-	uid1, err := ValidateID(user1)
-	if err != nil {
-		return err
-	}
-
-	uid2, err := ValidateID(user2)
-	if err != nil {
-		return err
-	}
-
-	gid, err := ValidateID(groupId)
-	if err != nil {
-		return err
-	}
-
-	_, err = q.ValidateUsersInSameGroup(ctx, sqlc.ValidateUsersInSameGroupParams{
-		UserID:   uid1,
-		UserID_2: uid2,
-		GroupID:  gid,
-	})
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return errors.New("users are not in the same group")
-		}
-		return err
-	}
-
-	return nil
-}
-
 func ValidateGroupExists(
 	ctx context.Context,
 	q *sqlc.Queries,

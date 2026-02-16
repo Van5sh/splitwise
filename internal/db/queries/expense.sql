@@ -10,8 +10,11 @@ INSERT INTO expenses (
     group_id,
     paid_by,
     amount,
-    description)
-VALUES ($1, $2, $3, $4)
+    description,
+    created_at,
+    paid
+)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: DeleteExpense :one
@@ -28,6 +31,7 @@ LIMIT 1;
 UPDATE expenses SET
     amount = COALESCE($2, amount),
     description = COALESCE($3, description),
+    paid = $4,
     updated_at = now()
 WHERE id = $1
 RETURNING *;

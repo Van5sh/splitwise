@@ -17,6 +17,7 @@ type Expense struct {
 	PaidBy      uuid.UUID
 	Description sql.NullString
 	Amount      string
+	Paid        bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -46,15 +47,6 @@ type Group struct {
 	TotalAmount string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-}
-
-type Settlement struct {
-	ID         uuid.UUID
-	GroupID    uuid.UUID
-	FromUserID uuid.UUID
-	ToUserID   uuid.UUID
-	Amount     string
-	CreatedAt  time.Time
 }
 
 type User struct {

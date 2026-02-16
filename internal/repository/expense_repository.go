@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/Van5sh/new-splitwise/domain/models"
 	sqlc "github.com/Van5sh/new-splitwise/internal/db/sqlc"
@@ -55,6 +56,8 @@ func (r *ExpenseRepository) CreateExpense(
 	groupId, userId, description string,
 	amount int,
 	splits []models.ExpenseSplitInput,
+	createdAt time.Time,
+	paid bool,
 ) (sqlc.Expense, error) {
 	groupUUID, err := uuid.Parse(groupId)
 	if err != nil {
@@ -88,6 +91,8 @@ func (r *ExpenseRepository) CreateExpense(
 		PaidBy:      userUUID,
 		Description: sql.NullString{String: description, Valid: description != ""},
 		Amount:      strconv.Itoa(amount),
+		CreatedAt:   createdAt,
+		Paid:        paid,
 	})
 	if err != nil {
 		return sqlc.Expense{}, err
@@ -202,6 +207,8 @@ func (r *ExpenseRepository) CreateIndividualExpense(
 		PaidBy:      fromUUID,
 		Description: sql.NullString{String: description, Valid: description != ""},
 		Amount:      strconv.Itoa(amount),
+		CreatedAt:   time.Now().UTC(),
+		Paid:        false,
 	})
 	if err != nil {
 		return sqlc.Expense{}, err
@@ -344,7 +351,7 @@ func (r *ExpenseRepository) DeleteExpense(ctx context.Context, id string) error 
 	return nil
 }
 
-func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description string, amount int, splits []models.ExpenseSplitInput) (sqlc.Expense, error) {
+func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description string, amount *int, splits []models.ExpenseSplitInput, paid *bool) (sqlc.Expense, error) {
 	expenseId, err := uuid.Parse(id)
 	if err != nil {
 		return sqlc.Expense{}, err
@@ -369,17 +376,26 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 	if err != nil {
 		return sqlc.Expense{}, err
 	}
+	newAmount := oldAmount
+	if amount != nil {
+		newAmount = *amount
+	}
+	newPaid := current.Paid
+	if paid != nil {
+		newPaid = *paid
+	}
 
 	updated, err := qtx.UpdateExpense(ctx, sqlc.UpdateExpenseParams{
 		ID:          expenseId,
 		Description: sql.NullString{String: description, Valid: description != ""},
-		Amount:      strconv.Itoa(amount),
+		Amount:      strconv.Itoa(newAmount),
+		Paid:        newPaid,
 	})
 	if err != nil {
 		return sqlc.Expense{}, err
 	}
 
-	delta := amount - oldAmount
+	delta := newAmount - oldAmount
 	if delta != 0 {
 		_, err = qtx.IncrementGroupTotalAmount(ctx, sqlc.IncrementGroupTotalAmountParams{
 			ID:          current.GroupID,
@@ -397,7 +413,7 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 	if len(members) == 0 {
 		return sqlc.Expense{}, fmt.Errorf("group has no members")
 	}
-	equalSplits := buildEqualSplits(members, amount, current.PaidBy.String())
+	equalSplits := buildEqualSplits(members, newAmount, current.PaidBy.String())
 	updatedSplits := make([]sqlc.AddExpenseSplitsParams, 0, len(equalSplits))
 	for _, s := range equalSplits {
 		splitUserID, err := uuid.Parse(s.UserID)
@@ -426,6 +442,15 @@ func (r *ExpenseRepository) UpdateExpense(ctx context.Context, id, description s
 			Amount:    split.Amount,
 		})
 		if err != nil {
+			return sqlc.Expense{}, err
+		}
+	}
+
+	if newPaid {
+		if err = qtx.DeleteSplitsByPaidBy(ctx, sqlc.DeleteSplitsByPaidByParams{
+			ExpenseID: expenseId,
+			UserID:    current.PaidBy,
+		}); err != nil {
 			return sqlc.Expense{}, err
 		}
 	}

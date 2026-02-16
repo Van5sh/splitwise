@@ -12,6 +12,7 @@ type Expense struct {
 	PaidBy      uuid.UUID `json:"paid_by"`
 	Description string    `json:"description"`
 	Amount      float64   `json:"amount"`
+	Paid        bool      `json:"paid"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

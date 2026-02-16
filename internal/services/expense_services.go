@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/Van5sh/new-splitwise/domain/models"
 	domain "github.com/Van5sh/new-splitwise/domain/repositories"
@@ -29,6 +30,7 @@ func (s *ExpenseServices) GetExpenses(ctx context.Context) ([]models.Expense, er
 			GroupID:     u.GroupID,
 			PaidBy:      u.PaidBy,
 			Description: u.Description.String,
+			Paid:        u.Paid,
 			CreatedAt:   u.CreatedAt,
 			UpdatedAt:   u.UpdatedAt,
 		}
@@ -46,6 +48,7 @@ func (s *ExpenseServices) GetExpenseByID(ctx context.Context, id string) (models
 		GroupID:     expense.GroupID,
 		PaidBy:      expense.PaidBy,
 		Description: expense.Description.String,
+		Paid:        expense.Paid,
 		CreatedAt:   expense.CreatedAt,
 		UpdatedAt:   expense.UpdatedAt,
 	}, nil
@@ -63,6 +66,7 @@ func (s *ExpenseServices) GetExpenseByGroupID(ctx context.Context, id string) ([
 			GroupID:     u.GroupID,
 			PaidBy:      u.PaidBy,
 			Description: u.Description.String,
+			Paid:        u.Paid,
 			CreatedAt:   u.CreatedAt,
 			UpdatedAt:   u.UpdatedAt,
 		}
@@ -82,6 +86,7 @@ func (s *ExpenseServices) GetExpenseByUserId(ctx context.Context, id string) ([]
 			GroupID:     u.GroupID,
 			PaidBy:      u.PaidBy,
 			Description: u.Description.String,
+			Paid:        u.Paid,
 			CreatedAt:   u.CreatedAt,
 			UpdatedAt:   u.UpdatedAt,
 		}
@@ -95,7 +100,7 @@ func (s *ExpenseServices) CreateExpense(
 	amount int,
 	splits []models.ExpenseSplitInput,
 ) (models.Expense, error) {
-	expense, err := s.repo.CreateExpense(ctx, groupId, userId, description, amount, splits)
+	expense, err := s.repo.CreateExpense(ctx, groupId, userId, description, amount, splits, time.Now().UTC(), false)
 	if err != nil {
 		return models.Expense{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -104,6 +109,7 @@ func (s *ExpenseServices) CreateExpense(
 		GroupID:     expense.GroupID,
 		PaidBy:      expense.PaidBy,
 		Description: expense.Description.String,
+		Paid:        expense.Paid,
 		CreatedAt:   expense.CreatedAt,
 		UpdatedAt:   expense.UpdatedAt,
 	}, nil
@@ -123,6 +129,7 @@ func (s *ExpenseServices) CreateIndividualExpense(
 		GroupID:     expense.GroupID,
 		PaidBy:      expense.PaidBy,
 		Description: expense.Description.String,
+		Paid:        expense.Paid,
 		CreatedAt:   expense.CreatedAt,
 		UpdatedAt:   expense.UpdatedAt,
 	}, nil
@@ -147,10 +154,11 @@ func (s *ExpenseServices) ValidateExpenseExists(ctx context.Context, id string) 
 func (s *ExpenseServices) UpdateExpense(
 	ctx context.Context,
 	id, description string,
-	amount int,
+	amount *int,
 	splits []models.ExpenseSplitInput,
+	paid *bool,
 ) (models.Expense, error) {
-	expense, err := s.repo.UpdateExpense(ctx, id, description, amount, splits)
+	expense, err := s.repo.UpdateExpense(ctx, id, description, amount, splits, paid)
 	if err != nil {
 		return models.Expense{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -159,6 +167,7 @@ func (s *ExpenseServices) UpdateExpense(
 		GroupID:     expense.GroupID,
 		PaidBy:      expense.PaidBy,
 		Description: expense.Description.String,
+		Paid:        expense.Paid,
 		CreatedAt:   expense.CreatedAt,
 		UpdatedAt:   expense.UpdatedAt,
 	}, nil

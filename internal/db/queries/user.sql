@@ -41,11 +41,6 @@ FROM user_groups ug
 JOIN groups g ON ug.group_id = g.id
 WHERE ug.user_id = $1;
 
--- name: GetUserSettlements :many
-SELECT s.*
-FROM settlements s
-WHERE s.from_user_id = $1 OR s.to_user_id = $1;
-
 -- name: GetUserExpensesByUserId :many
 SELECT e.*
 FROM expenses e

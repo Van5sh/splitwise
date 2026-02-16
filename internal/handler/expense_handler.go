@@ -143,6 +143,47 @@ func getIntField(payload map[string]interface{}, keys ...string) (int, error) {
 	return 0, fmt.Errorf("missing number")
 }
 
+func getOptionalIntField(payload map[string]interface{}, keys ...string) (*int, error) {
+	for _, key := range keys {
+		if v, ok := payload[key]; ok {
+			switch val := v.(type) {
+			case float64:
+				i := int(val)
+				return &i, nil
+			case string:
+				parsed, err := strconv.Atoi(strings.TrimSpace(val))
+				if err != nil {
+					return nil, err
+				}
+				return &parsed, nil
+			default:
+				return nil, fmt.Errorf("invalid number")
+			}
+		}
+	}
+	return nil, nil
+}
+
+func getOptionalBoolField(payload map[string]interface{}, keys ...string) (*bool, error) {
+	for _, key := range keys {
+		if v, ok := payload[key]; ok {
+			switch val := v.(type) {
+			case bool:
+				return &val, nil
+			case string:
+				parsed, err := strconv.ParseBool(strings.TrimSpace(val))
+				if err != nil {
+					return nil, err
+				}
+				return &parsed, nil
+			default:
+				return nil, fmt.Errorf("invalid boolean")
+			}
+		}
+	}
+	return nil, nil
+}
+
 func (h *ExpenseHandler) DeleteExpenseByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	uid, err := helpers.ValidateID(id)
@@ -167,11 +208,15 @@ func (h *ExpenseHandler) UpdateExpense(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid expense id"})
 	}
 	description := getStringField(payload, "description", "Description")
-	amount, err := getIntField(payload, "amount", "Amount")
+	amount, err := getOptionalIntField(payload, "amount", "Amount")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid amount"})
 	}
-	updatedExpense, err := h.services.UpdateExpense(c.Context(), uid.String(), description, amount, nil)
+	paid, err := getOptionalBoolField(payload, "paid", "Paid")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid paid"})
+	}
+	updatedExpense, err := h.services.UpdateExpense(c.Context(), uid.String(), description, amount, nil, paid)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

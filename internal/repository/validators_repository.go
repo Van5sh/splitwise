@@ -21,31 +21,6 @@ func (r *UserRepository) ValidateUserExists(ctx context.Context, id string) (boo
 	return true, nil
 }
 
-func (r *SettlementRepository) ValidateUsersInSameGroup(
-	ctx context.Context, user1, user2, groupId string) (int32, error) {
-	uid1, err := uuid.Parse(user1)
-	if err != nil {
-		return 0, err
-	}
-	uid2, err := uuid.Parse(user2)
-	if err != nil {
-		return 0, err
-	}
-	gId, err := uuid.Parse(groupId)
-	if err != nil {
-		return 0, err
-	}
-	res, err := r.q.ValidateUsersInSameGroup(ctx, sqlc.ValidateUsersInSameGroupParams{
-		UserID:   uid1,
-		UserID_2: uid2,
-		GroupID:  gId,
-	})
-	if err != nil {
-		return 0, err
-	}
-	return res, nil
-}
-
 func (r *GroupsRepository) ValidateGroupExists(ctx context.Context, id string) (bool, error) {
 	groupID, err := uuid.Parse(id)
 	if err != nil {

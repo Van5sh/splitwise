@@ -171,7 +171,7 @@ func (q *Queries) GetUserByName(ctx context.Context, userName string) (GetUserBy
 }
 
 const getUserExpensesByUserId = `-- name: GetUserExpensesByUserId :many
-SELECT e.id, e.group_id, e.paid_by, e.description, e.amount, e.created_at, e.updated_at
+SELECT e.id, e.group_id, e.paid_by, e.description, e.amount, e.paid, e.created_at, e.updated_at
 FROM expenses e
 WHERE e.paid_by = $1
 `
@@ -191,6 +191,7 @@ func (q *Queries) GetUserExpensesByUserId(ctx context.Context, paidBy uuid.UUID)
 			&i.PaidBy,
 			&i.Description,
 			&i.Amount,
+			&i.Paid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -243,42 +244,6 @@ func (q *Queries) GetUserGroups(ctx context.Context, userID uuid.UUID) ([]GetUse
 			&i.UpdatedAt,
 			&i.GroupName,
 			&i.Description,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUserSettlements = `-- name: GetUserSettlements :many
-SELECT s.id, s.group_id, s.from_user_id, s.to_user_id, s.amount, s.created_at
-FROM settlements s
-WHERE s.from_user_id = $1 OR s.to_user_id = $1
-`
-
-func (q *Queries) GetUserSettlements(ctx context.Context, fromUserID uuid.UUID) ([]Settlement, error) {
-	rows, err := q.db.QueryContext(ctx, getUserSettlements, fromUserID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Settlement
-	for rows.Next() {
-		var i Settlement
-		if err := rows.Scan(
-			&i.ID,
-			&i.GroupID,
-			&i.FromUserID,
-			&i.ToUserID,
-			&i.Amount,
-			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

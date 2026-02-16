@@ -7,7 +7,6 @@ sql:
       - "./internal/db/migrations/003_migrations_groups_up.sql"
       - "./internal/db/migrations/004_migrations_expenses.sql"
       - "./internal/db/migrations/005_migration_expensesplit.sql"
-      - "./internal/db/migrations/006_migrations_settlements_up.sql"
       - "./internal/db/migrations/007_migrations_usergroup_up.sql"
       - "./internal/db/migrations/008_migrations_friends.sql"
       - "./internal/db/migrations/010_add_paid_to_expense_splits.sql"

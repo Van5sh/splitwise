@@ -24,6 +24,11 @@ WHERE user_id = $1;
 DELETE FROM expense_splits
 WHERE expense_id = $1;
 
+-- name: DeleteSplitsByPaidBy :exec
+DELETE FROM expense_splits
+WHERE expense_id = $1
+  AND (user_id = $2 OR paid_to = $2);
+
 -- name: ValidateSplitTotalEqualsExpense :one
 SELECT 1
 FROM expenses e

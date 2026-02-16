@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,9 +18,12 @@ INSERT INTO expenses (
     group_id,
     paid_by,
     amount,
-    description)
-VALUES ($1, $2, $3, $4)
-RETURNING id, group_id, paid_by, description, amount, created_at, updated_at
+    description,
+    created_at,
+    paid
+)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, group_id, paid_by, description, amount, paid, created_at, updated_at
 `
 
 type CreateExpenseParams struct {
@@ -27,6 +31,8 @@ type CreateExpenseParams struct {
 	PaidBy      uuid.UUID
 	Amount      string
 	Description sql.NullString
+	CreatedAt   time.Time
+	Paid        bool
 }
 
 func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (Expense, error) {
@@ -35,6 +41,8 @@ func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (E
 		arg.PaidBy,
 		arg.Amount,
 		arg.Description,
+		arg.CreatedAt,
+		arg.Paid,
 	)
 	var i Expense
 	err := row.Scan(
@@ -43,6 +51,7 @@ func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (E
 		&i.PaidBy,
 		&i.Description,
 		&i.Amount,
+		&i.Paid,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -51,7 +60,7 @@ func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (E
 
 const deleteExpense = `-- name: DeleteExpense :one
 DELETE FROM expenses WHERE id = $1 
-RETURNING id, group_id, paid_by, description, amount, created_at, updated_at
+RETURNING id, group_id, paid_by, description, amount, paid, created_at, updated_at
 `
 
 func (q *Queries) DeleteExpense(ctx context.Context, id uuid.UUID) (Expense, error) {
@@ -63,6 +72,7 @@ func (q *Queries) DeleteExpense(ctx context.Context, id uuid.UUID) (Expense, err
 		&i.PaidBy,
 		&i.Description,
 		&i.Amount,
+		&i.Paid,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -70,7 +80,7 @@ func (q *Queries) DeleteExpense(ctx context.Context, id uuid.UUID) (Expense, err
 }
 
 const getExpenseById = `-- name: GetExpenseById :one
-SELECT id, group_id, paid_by, description, amount, created_at, updated_at FROM expenses WHERE id = $1
+SELECT id, group_id, paid_by, description, amount, paid, created_at, updated_at FROM expenses WHERE id = $1
 `
 
 func (q *Queries) GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, error) {
@@ -82,6 +92,7 @@ func (q *Queries) GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, er
 		&i.PaidBy,
 		&i.Description,
 		&i.Amount,
+		&i.Paid,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -89,7 +100,7 @@ func (q *Queries) GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, er
 }
 
 const getExpenses = `-- name: GetExpenses :many
-SELECT id, group_id, paid_by, description, amount, created_at, updated_at FROM expenses
+SELECT id, group_id, paid_by, description, amount, paid, created_at, updated_at FROM expenses
 `
 
 func (q *Queries) GetExpenses(ctx context.Context) ([]Expense, error) {
@@ -107,6 +118,7 @@ func (q *Queries) GetExpenses(ctx context.Context) ([]Expense, error) {
 			&i.PaidBy,
 			&i.Description,
 			&i.Amount,
+			&i.Paid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -124,7 +136,7 @@ func (q *Queries) GetExpenses(ctx context.Context) ([]Expense, error) {
 }
 
 const getExpensesByGroupId = `-- name: GetExpensesByGroupId :many
-SELECT id, group_id, paid_by, description, amount, created_at, updated_at FROM expenses WHERE group_id = $1
+SELECT id, group_id, paid_by, description, amount, paid, created_at, updated_at FROM expenses WHERE group_id = $1
 `
 
 func (q *Queries) GetExpensesByGroupId(ctx context.Context, groupID uuid.UUID) ([]Expense, error) {
@@ -142,6 +154,7 @@ func (q *Queries) GetExpensesByGroupId(ctx context.Context, groupID uuid.UUID) (
 			&i.PaidBy,
 			&i.Description,
 			&i.Amount,
+			&i.Paid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -159,7 +172,7 @@ func (q *Queries) GetExpensesByGroupId(ctx context.Context, groupID uuid.UUID) (
 }
 
 const getExpensesByUserId = `-- name: GetExpensesByUserId :many
-SELECT id, group_id, paid_by, description, amount, created_at, updated_at FROM expenses WHERE paid_by = $1
+SELECT id, group_id, paid_by, description, amount, paid, created_at, updated_at FROM expenses WHERE paid_by = $1
 `
 
 func (q *Queries) GetExpensesByUserId(ctx context.Context, paidBy uuid.UUID) ([]Expense, error) {
@@ -177,6 +190,7 @@ func (q *Queries) GetExpensesByUserId(ctx context.Context, paidBy uuid.UUID) ([]
 			&i.PaidBy,
 			&i.Description,
 			&i.Amount,
+			&i.Paid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -197,19 +211,26 @@ const updateExpense = `-- name: UpdateExpense :one
 UPDATE expenses SET
     amount = COALESCE($2, amount),
     description = COALESCE($3, description),
+    paid = $4,
     updated_at = now()
 WHERE id = $1
-RETURNING id, group_id, paid_by, description, amount, created_at, updated_at
+RETURNING id, group_id, paid_by, description, amount, paid, created_at, updated_at
 `
 
 type UpdateExpenseParams struct {
 	ID          uuid.UUID
 	Amount      string
 	Description sql.NullString
+	Paid        bool
 }
 
 func (q *Queries) UpdateExpense(ctx context.Context, arg UpdateExpenseParams) (Expense, error) {
-	row := q.db.QueryRowContext(ctx, updateExpense, arg.ID, arg.Amount, arg.Description)
+	row := q.db.QueryRowContext(ctx, updateExpense,
+		arg.ID,
+		arg.Amount,
+		arg.Description,
+		arg.Paid,
+	)
 	var i Expense
 	err := row.Scan(
 		&i.ID,
@@ -217,6 +238,7 @@ func (q *Queries) UpdateExpense(ctx context.Context, arg UpdateExpenseParams) (E
 		&i.PaidBy,
 		&i.Description,
 		&i.Amount,
+		&i.Paid,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
